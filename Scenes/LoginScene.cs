@@ -20,6 +20,8 @@ namespace CompSci_NEA.Scenes
             Signup
         }
 
+        private bool loaded = false;
+
         private UIState currentState = UIState.Welcome;
         private Vector2 offScreen = new Vector2(-500, -500);
 
@@ -40,7 +42,7 @@ namespace CompSci_NEA.Scenes
         private GUI.InputBox passwordInputBox;
         private GUI.Button submitButton;
         private GUI.Button cancelButton;
-        
+
         Database.DbFunctions dbFunctions;
 
         private GUI.InputBox activeInputBox;
@@ -60,6 +62,7 @@ namespace CompSci_NEA.Scenes
 
         public override void LoadContent() //login init setup for welcome state
         {
+            loaded = true;
             font = game.Content.Load<SpriteFont>("DefaultFont");
 
             titleText = new GUI.Text(font, "Welcome to my Rubbish Game", new Vector2(100, 50), Color.White, 3.0f);
@@ -87,25 +90,36 @@ namespace CompSci_NEA.Scenes
             passwordInputBox.OnClickAction = () => OnActiveInputBoxClick(passwordInputBox);
 
             allInputBoxes = new GUI.InputBox[] { usernameInputBox, passwordInputBox, };
+
+            game.pauseCurrentSceneUpdateing = false;
         }
 
         public override void Update(GameTime gameTime)
         {
-            loginButton.Update();
-            signupButton.Update();
-            quitButton.Update();
+            if (!loaded) return;
+            try
+            {
+                loginButton.Update();
+                signupButton.Update();
+                quitButton.Update();
 
-            cancelButton.Update();
-            submitButton.Update();
+                cancelButton.Update();
+                submitButton.Update();
 
-            usernameInputBox.Update(gameTime);
-            passwordInputBox.Update(gameTime);
+                usernameInputBox.Update(gameTime);
+                passwordInputBox.Update(gameTime);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
 
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
+            if (!loaded) return;
             game.GraphicsDevice.Clear(Color.Blue);
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
@@ -132,6 +146,9 @@ namespace CompSci_NEA.Scenes
 
         private void SwitchState(UIState newState)
         {
+            Console.WriteLine(loaded);
+            if (!loaded) return;
+            Console.WriteLine("updateing");
             currentState = newState;
 
             if (newState == UIState.Welcome)
@@ -183,7 +200,7 @@ namespace CompSci_NEA.Scenes
 
         private void OnActiveInputBoxClick(GUI.InputBox nowActive)
         {
-            foreach (var box in allInputBoxes) 
+            foreach (var box in allInputBoxes)
             {
                 if (box == nowActive) continue;
                 else box.isActive = false;
@@ -192,9 +209,10 @@ namespace CompSci_NEA.Scenes
 
         private void AttemptingLogin(string username, string password)
         {
-            if (!UsernameFormatChecker(username) || !PasswordFormatChecker(password)) 
+            if (!UsernameFormatChecker(username) || !PasswordFormatChecker(password))
             {
                 return;
+
             }
 
             bool isAuthenticated = dbFunctions.AuthenticateUser(username, password);
@@ -206,6 +224,7 @@ namespace CompSci_NEA.Scenes
             }
 
             //put stwitchstate here
+            game.ChangeState(GameState.DEBUG);
             Console.WriteLine("sucess!!");
         }
 
@@ -242,6 +261,31 @@ namespace CompSci_NEA.Scenes
                 return false;
             }
             return true;
+        }
+
+        public override void Shutdown()
+        {
+            loaded = false;
+            // Unload specific resources here
+            font = null;
+
+            // Set GUI elements to null
+            titleText = null;
+            loginButton = null;
+            signupButton = null;
+            quitButton = null;
+            loginTitleText = null;
+            signupTitleText = null;
+            errorText = null;
+            usernameInputBox = null;
+            passwordInputBox = null;
+            cancelButton = null;
+            submitButton = null;
+
+            // Set other resources to null or dispose them if necessary
+            dbFunctions = null;
+            activeInputBox = null;
+            allInputBoxes = null;
         }
     }
 }

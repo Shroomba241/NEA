@@ -16,23 +16,34 @@ namespace CompSci_NEA.Scenes
         private Player player;
         private Camera camera;
         private Texture2D playerTexture;
-        private TileMap tileMap;
+        private Tilemap.TileMapVisual tileMapVisual;
+        private Tilemap.TileMapCollisions tileMapCollisions;
 
-        public MOVEDEBUGTEST(Main game) 
+        public MOVEDEBUGTEST(Main game)
         {
             this.game = game;
         }
 
         public override void LoadContent()
         {
-            tileMap = new TileMap(game.GraphicsDevice, 20, 30);
-            player = new Player(game.GraphicsDevice, new Vector2(-50, -50)); 
+            tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 20, 30);
+            tileMapCollisions = new Tilemap.TileMapCollisions(game.GraphicsDevice, 5, 5);
+            player = new Player(game.GraphicsDevice, new Vector2(-50, -50));
             camera = new Camera();
+
+            tileMapVisual.GenerateTiles(game.GraphicsDevice);
+            tileMapCollisions.GenerateTiles(game.GraphicsDevice);
+
+            //tileMapVisual.FillSolidArea(game.GraphicsDevice, 0, 0, 10, 10, Color.Blue);
+
+            //tileMapCollisions.FillSolidArea(game.GraphicsDevice, 0, 0, 10, 10, Color.Transparent);
+
+            game.pauseCurrentSceneUpdateing = false;
         }
 
-        public override void Update(GameTime gameTime) 
+        public override void Update(GameTime gameTime)
         {
-            player.Update(tileMap);
+            player.Update(tileMapCollisions);
             camera.Update(player.Position);
         }
 
@@ -40,9 +51,14 @@ namespace CompSci_NEA.Scenes
         {
             game.GraphicsDevice.Clear(Color.DimGray);
             spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.Transform);
-            tileMap.Draw(spriteBatch);
+            tileMapVisual.Draw(spriteBatch);
             player.Draw(spriteBatch);
             spriteBatch.End();
+        }
+
+        public override void Shutdown()
+        {
+            throw new NotImplementedException();
         }
     }
 }

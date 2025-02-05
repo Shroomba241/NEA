@@ -13,7 +13,7 @@ namespace CompSci_NEA.Tilemap
         public Vector2 Position { get; private set; }
         public Texture2D Texture { get; private set; }
         public static int TileSize = 48; // Size of each tile
-        public bool IsSolid { get; private set; }
+        public bool IsSolid = false;
 
         public Tile(GraphicsDevice graphicsDevice, Vector2 position, Color color, bool isSolid)
         {

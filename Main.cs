@@ -13,8 +13,9 @@ namespace CompSci_NEA
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private Core.GameState currentState;
+        public Core.GameState currentState;
         private Scenes.Scene currentScene;
+        public bool pauseCurrentSceneUpdateing;
 
         //idk if these need to be here or maybe i could scene them somewhere.
         private Database.DbFunctions _dbFunctions;
@@ -37,8 +38,8 @@ namespace CompSci_NEA
 
             currentState = Core.GameState.DEBUG;
             _createDB = new Database.CreateDB();
-            //_createDB.CreateDatabase();
-            _dbFunctions = new Database.DbFunctions();
+            _createDB.CreateDatabase();
+            //_dbFunctions = new Database.DbFunctions();
 
             //Console.WriteLine(_dbFunctions.AuthenticateUser("TestUser", "password123"));
             //_dbFunctions.AddUser("Shroomba", "Password123");
@@ -57,7 +58,7 @@ namespace CompSci_NEA
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            currentScene.Update(gameTime);
+            if (!pauseCurrentSceneUpdateing) currentScene.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -67,13 +68,16 @@ namespace CompSci_NEA
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
 
-            currentScene.Draw(_spriteBatch);
+            if (!pauseCurrentSceneUpdateing) currentScene.Draw(_spriteBatch);
 
             base.Draw(gameTime);
         }
 
         public void ChangeState(GameState newState)
         {
+            pauseCurrentSceneUpdateing = true;
+            currentScene?.Shutdown();
+
             currentState = newState;
             switch (newState)
             {
