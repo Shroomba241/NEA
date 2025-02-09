@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿
+
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
 
@@ -6,33 +8,21 @@ namespace CompSci_NEA.Tilemap
 {
     public class TileMapCollisions : BaseTileMap
     {
-        public TileMapCollisions(GraphicsDevice graphicsDevice, int rows, int cols)
-            : base(graphicsDevice, rows, cols) { }
+        // Constructor with total chunks parameters [NEW]
+        public TileMapCollisions(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY)
+            : base(graphicsDevice, totalChunksX, totalChunksY) { }
 
-        public override void GenerateTiles(GraphicsDevice graphicsDevice)
+        public override byte GenerateTile(int x, int y)
         {
             Random rand = new Random();
-
-            for (int y = 0; y < rows; y++)
-            {
-                for (int x = 0; x < cols; x++)
-                {
-                    Vector2 position = new Vector2(x * Tile.TileSize, y * Tile.TileSize);
-                    tiles[y, x] = new Tile(graphicsDevice, position, Color.Transparent, true); // Use transparent color
-                }
-            }
+            return (rand.NextDouble() > 0.8) ? (byte)2 : (byte)1; // 2 = Water, 1 = Grass
         }
 
         public bool CheckCollision(Rectangle playerRect)
         {
-            foreach (var tile in tiles)
-            {
-                if (tile.IsSolid && tile.GetBoundingBox().Intersects(playerRect))
-                {
-                    return true; // Collision detected
-                }
-            }
-            return false; // No collision
+            int tileX = playerRect.X / 48;
+            int tileY = playerRect.Y / 48;
+            return GetTile(tileX, tileY) == 2; // Check for water tile
         }
     }
 }

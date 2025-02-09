@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CompSci_NEA.Tilemap;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-
+using CompSci_NEA.Tilemap;
 
 namespace CompSci_NEA.Entities
 {
     public class Player
     {
-        public Vector2 Position { get; set; }
-        private float acceleration = 0.8f;
-        private float deceleration = 1.2f;
-        private float maxSpeed = 5f;
+        public Vector2 Position { get; private set; }
         private Vector2 velocity;
+
+        private float acceleration = 8f;
+        private float deceleration = 12f;
+        private float maxSpeed = 15f;
+
         private Texture2D texture;
         private Rectangle destinationRect;
 
@@ -33,133 +30,70 @@ namespace CompSci_NEA.Entities
             texture.SetData(new[] { Color.Red });
         }
 
-        public void Update(Tilemap.TileMapCollisions tileMap)
+        public void Update(TileMapCollisions tileMap)
         {
             KeyboardState keyState = Keyboard.GetState();
+            Vector2 nextVelocity = velocity;
 
-            // Apply acceleration when keys are pressed
-            if (keyState.IsKeyDown(Keys.W)) velocity.Y -= acceleration;
-            if (keyState.IsKeyDown(Keys.S)) velocity.Y += acceleration;
-            if (keyState.IsKeyDown(Keys.A)) velocity.X -= acceleration;
-            if (keyState.IsKeyDown(Keys.D)) velocity.X += acceleration;
+            // Apply acceleration
+            if (keyState.IsKeyDown(Keys.W)) nextVelocity.Y -= acceleration;
+            if (keyState.IsKeyDown(Keys.S)) nextVelocity.Y += acceleration;
+            if (keyState.IsKeyDown(Keys.A)) nextVelocity.X -= acceleration;
+            if (keyState.IsKeyDown(Keys.D)) nextVelocity.X += acceleration;
 
-            // Apply deceleration when no input is given
+            // Apply deceleration
             if (!keyState.IsKeyDown(Keys.W) && !keyState.IsKeyDown(Keys.S))
-            {
-                if (velocity.Y > 0) velocity.Y -= deceleration;
-                if (velocity.Y < 0) velocity.Y += deceleration;
-                if (Math.Abs(velocity.Y) < deceleration) velocity.Y = 0;
-            }
-
+                nextVelocity.Y = ApproachZero(nextVelocity.Y, deceleration);
             if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D))
+                nextVelocity.X = ApproachZero(nextVelocity.X, deceleration);
+
+            // Clamp velocity to max speed
+            nextVelocity = Vector2.Clamp(nextVelocity, new Vector2(-maxSpeed, -maxSpeed), new Vector2(maxSpeed, maxSpeed));
+
+            // Predict next position
+            Vector2 nextPosition = Position + nextVelocity;
+            Rectangle nextRect = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, 50, 100);
+
+            // Check collisions only for relevant tiles
+            if (!IsColliding(tileMap, nextRect))
             {
-                if (velocity.X > 0) velocity.X -= deceleration;
-                if (velocity.X < 0) velocity.X += deceleration;
-                if (Math.Abs(velocity.X) < deceleration) velocity.X = 0;
+                Position = nextPosition;  // Move if no collision
+                velocity = nextVelocity;
             }
-
-            // Clamp velocity to maxSpeed
-            velocity = Vector2.Clamp(velocity, new Vector2(-maxSpeed, -maxSpeed), new Vector2(maxSpeed, maxSpeed));
-
-            // Predict the next position
-            Vector2 nextPosition = Position + velocity;
-
-            // Define the player's rectangle based on the next position
-            Rectangle nextDestinationRect = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, 50, 100);
-
-            // Check for collisions with tiles
-            foreach (var tile in tileMap.tiles)
+            else
             {
-                if (tile.IsSolid && tile.GetBoundingBox().Intersects(nextDestinationRect))
-                {
-                    Rectangle tileBoundingBox = tile.GetBoundingBox();
-
-                    // Determine which side of the player is colliding with the tile
-                    float overlapLeft = tileBoundingBox.Right - nextDestinationRect.Left; // Distance from the left
-                    float overlapRight = nextDestinationRect.Right - tileBoundingBox.Left; // Distance from the right
-                    float overlapTop = tileBoundingBox.Bottom - nextDestinationRect.Top; // Distance from the top
-                    float overlapBottom = nextDestinationRect.Bottom - tileBoundingBox.Top; // Distance from the bottom
-
-                    // Find the smallest overlap to resolve the collision
-                    float minOverlap = Math.Min(Math.Min(overlapLeft, overlapRight), Math.Min(overlapTop, overlapBottom));
-
-                    if (minOverlap == overlapLeft) // Colliding from the left
-                    {
-                        Console.WriteLine("LEFT");
-                        nextPosition.X = tileBoundingBox.Right; // Move to the right of the tile
-                        velocity.X = 0; // Reset horizontal velocity
-                    }
-                    else if (minOverlap == overlapRight) // Colliding from the right
-                    {
-                        Console.WriteLine("-RIGHT");
-                        nextPosition.X = tileBoundingBox.Left - nextDestinationRect.Width; // Move to the left of the tile
-                        velocity.X = 0; // Reset horizontal velocity
-                    }
-                    else if (minOverlap == overlapTop) // Colliding from above
-                    {
-                        Console.WriteLine("--TOP");
-                        nextPosition.Y = tileBoundingBox.Bottom; // Move below the tile
-                        velocity.Y = 0; // Reset vertical velocity
-                    }
-                    else if (minOverlap == overlapBottom) // Colliding from below
-                    {
-                        Console.WriteLine("---BOTTOM");
-                        nextPosition.Y = tileBoundingBox.Top - nextDestinationRect.Height; // Move above the tile
-                        velocity.Y = 0; // Reset vertical velocity
-                    }
-                }
+                velocity = Vector2.Zero; // Stop movement if colliding
             }
-
-            // Update the player's position after all collision checks
-            Position = nextPosition;
         }
 
-
-
-
-
-
-
-        /*public void Update(Tilemap.TileMapCollisions tileMap)
+        private float ApproachZero(float value, float amount)
         {
-            KeyboardState keyState = Keyboard.GetState();
-            Vector2 previousPosition = Position;
+            if (Math.Abs(value) < amount) return 0;
+            return value > 0 ? value - amount : value + amount;
+        }
 
-            // Apply acceleration when keys are pressed
-            if (keyState.IsKeyDown(Keys.W)) velocity.Y -= acceleration;
-            if (keyState.IsKeyDown(Keys.S)) velocity.Y += acceleration;
-            if (keyState.IsKeyDown(Keys.A)) velocity.X -= acceleration;
-            if (keyState.IsKeyDown(Keys.D)) velocity.X += acceleration;
+        private bool IsColliding(TileMapCollisions tileMap, Rectangle playerRect)
+        {
+            int tileSize = 48;
 
-            // Apply deceleration when no input is given
-            if (!keyState.IsKeyDown(Keys.W) && !keyState.IsKeyDown(Keys.S))
+            // Get the range of tiles the player occupies
+            int left = playerRect.Left / tileSize;
+            int right = playerRect.Right / tileSize;
+            int top = playerRect.Top / tileSize;
+            int bottom = playerRect.Bottom / tileSize;
+
+            /*for (int y = top; y <= bottom; y++)
             {
-                if (velocity.Y > 0) velocity.Y -= deceleration;
-                if (velocity.Y < 0) velocity.Y += deceleration;
-                if (Math.Abs(velocity.Y) < deceleration) velocity.Y = 0;
-            }
-
-            if (!keyState.IsKeyDown(Keys.A) && !keyState.IsKeyDown(Keys.D))
-            {
-                if (velocity.X > 0) velocity.X -= deceleration;
-                if (velocity.X < 0) velocity.X += deceleration;
-                if (Math.Abs(velocity.X) < deceleration) velocity.X = 0;
-            }
-
-            // Clamp velocity to maxSpeed
-            velocity = Vector2.Clamp(velocity, new Vector2(-maxSpeed, -maxSpeed), new Vector2(maxSpeed, maxSpeed));
-
-            // Update position
-            Position += velocity;
-
-            // Check for collision
-            destinationRect = new Rectangle((int)Position.X, (int)Position.Y, 50, 100); // Define the player's rectangle
-            *//*if (tileMap.CheckCollision(destinationRect))
-            {
-                // Simple collision response: revert to previous position
-                Position = previousPosition;
-            }*//*
-        }*/
+                for (int x = left; x <= right; x++)
+                {
+                    if (tileMap.IsSolidTile(x, y))
+                    {
+                        return true; // Collision detected
+                    }
+                }
+            }*/
+            return false;
+        }
 
         public void Draw(SpriteBatch spriteBatch)
         {
@@ -167,5 +101,4 @@ namespace CompSci_NEA.Entities
             spriteBatch.Draw(texture, destinationRect, Color.White);
         }
     }
-
 }

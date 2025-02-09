@@ -32,9 +32,12 @@ namespace CompSci_NEA
         {
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
-            _graphics.IsFullScreen = true;
+            //_graphics.IsFullScreen = true;
             _graphics.HardwareModeSwitch = false; //boarderless windowed
+            //_graphics.SynchronizeWithVerticalRetrace = false; // Disable VSync
+            //IsFixedTimeStep = false;
             _graphics.ApplyChanges();
+            
 
             currentState = Core.GameState.DEBUG;
             _createDB = new Database.CreateDB();
@@ -49,6 +52,7 @@ namespace CompSci_NEA
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            TextureManager.LoadContent(Content);
             //Enumerable.Range(0, 10).ToList().ForEach(_ => Console.WriteLine(_dbFunctions.GenerateRandomSalt()));
             ChangeState(currentState);
         }
