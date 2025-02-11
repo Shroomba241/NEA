@@ -1,5 +1,7 @@
-﻿using CompSci_NEA.Entities;
+﻿using CompSci_NEA.Core;
+using CompSci_NEA.Entities;
 using CompSci_NEA.Tilemap;
+using CompSci_NEA.WorldGeneration;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,6 +15,7 @@ namespace CompSci_NEA.Scenes
 {
     public class MOVEDEBUGTEST : Scene
     {
+        public static int SEED = 123126;
         private Main game;
         private Player player;
         private Camera camera;
@@ -24,10 +27,16 @@ namespace CompSci_NEA.Scenes
         private Texture2D mapTexture;
         private Texture2D highlightTexture;
         private bool showMap = true;
+        private float chunkWidth = 1024f / 24f;
+        private float chunkHeight = 768f / 18f;
+        public List<Rectangle> ExtraColliders { get; set; } = new List<Rectangle>();
+
+        public static bool ShowCollisionDebug = false;
 
         public MOVEDEBUGTEST(Main game)
         {
             this.game = game;
+            NoiseGenerator.SetSeed(SEED);
         }
 
         public override void LoadContent()
@@ -35,22 +44,21 @@ namespace CompSci_NEA.Scenes
             font = game.Content.Load<SpriteFont>("DefaultFont");
             simplePerformance = new GUI.SimplePerformance(font);
 
-            // Initialize the tilemaps with the GraphicsDevice.
-            tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 16, 12);
-            tileMapCollisions = new Tilemap.TileMapCollisions(game.GraphicsDevice, 16, 12);
-            structureTileMap = new Tilemap.StructureTileMap(game.GraphicsDevice, 16, 12);
+            tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 24, 18, SEED);
+            tileMapCollisions = new Tilemap.TileMapCollisions(game.GraphicsDevice, 24, 18, SEED);
+            structureTileMap = new Tilemap.StructureTileMap(game.GraphicsDevice, 24, 18, SEED);
 
-            // Initialize the player at a valid position.
-            player = new Player(game.GraphicsDevice, new Vector2(50, 50));
+            tileMapCollisions.ExtraColliders.AddRange(structureTileMap.StoneBridgeColliders);
+
+            player = new Player(game.GraphicsDevice, new Vector2(150 * 48, 384 * 48));
             camera = new Camera();
 
-            // No need for tile generation here since it's handled in the BaseTileMap logic.
             game.pauseCurrentSceneUpdateing = false;
 
-            highlightTexture = new Texture2D(game.GraphicsDevice, 1, 1); // 1x1 texture
-            highlightTexture.SetData(new Color[] { Color.White }); // Set color to white
+            highlightTexture = new Texture2D(game.GraphicsDevice, 1, 1); 
+            highlightTexture.SetData(new Color[] { Color.White }); 
 
-            mapTexture = tileMapVisual.GenerateMapTexture(game.GraphicsDevice, 1024, 1024);
+            mapTexture = tileMapVisual.GenerateMapTexture(game.GraphicsDevice, 1024, 768, structureTileMap);
 
 
         }
@@ -64,40 +72,48 @@ namespace CompSci_NEA.Scenes
             else showMap = false;
 
             simplePerformance.Update(gameTime);
-            player.Update(tileMapCollisions); // Update the player based on tile collisions
-            camera.Update(player.Position); // Update the camera based on player position
+            player.Update(tileMapCollisions); 
+            camera.Update(player.Position);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
             game.GraphicsDevice.Clear(Color.DimGray);
-            spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.Transform);
 
-            // Draw the visual representation of the tilemap, passing the player for chunk drawing.
+            //spiritebatch affected by zoom
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.Transform);
             tileMapVisual.Draw(spriteBatch, player);
+            structureTileMap.DrawBackgroundLayer(spriteBatch, player);
             player.Draw(spriteBatch);
-            structureTileMap.DrawStructures(spriteBatch, player);
+            structureTileMap.DrawForegroundLayer(spriteBatch, player);
+            if (ShowCollisionDebug)
+            {
+                tileMapCollisions.DrawDebug(spriteBatch, TextureManager.DEBUG_Collider, player.Position);
+            }
             spriteBatch.End();
 
-            // Draw performance metrics.
+            //spritebatch not affected by zoom (HUD, map, etc)
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            if(showMap && mapTexture != null)
+            if (showMap && mapTexture != null)
             {
                 spriteBatch.Draw(mapTexture, new Vector2(448, 24), Color.White);
-                Point playerChunk = tileMapVisual.GetChunkCoordinates((int)player.Position.X, (int)player.Position.Y);
-                Vector2 highlightPosition = new Vector2(448, 24) + new Vector2(playerChunk.X * (1024 / 16), playerChunk.Y * (1024 / 16));
-                spriteBatch.Draw(highlightTexture, highlightPosition, null, Color.White * 0.5f, 0f, Vector2.Zero, new Vector2(1024 / 16, 1024 / 16), SpriteEffects.None, 0f);
+                Point playerChunk = tileMapVisual.GetChunkCoordinates((int)player.Position.X, (int)player.Position.Y); 
+                Vector2 highlightPosition = new Vector2(448, 24) +
+                                             new Vector2(playerChunk.X * chunkWidth, playerChunk.Y * chunkHeight);
+                spriteBatch.Draw(highlightTexture, highlightPosition, null, Color.White * 0.5f,
+                                 0f, Vector2.Zero, new Vector2(chunkWidth, chunkHeight), SpriteEffects.None, 0f);
             }
+
             simplePerformance.Draw(spriteBatch);
             spriteBatch.End();
         }
 
         public override void Shutdown()
         {
-            // Implement any necessary cleanup logic here
             throw new NotImplementedException();
         }
 
 
     }
 }
+

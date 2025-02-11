@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CompSci_NEA.Tilemap
 {
@@ -12,8 +9,9 @@ namespace CompSci_NEA.Tilemap
     {
         public string Name;
         public bool IsSolid;
-        public Rectangle TextureRegion; // UV mapping for tile atlas
+        public Rectangle TextureRegion;
         public Color Color;
+        public List<Rectangle> VariationRegions;
 
         public TileType(string name, bool isSolid, Rectangle textureRegion, Color color)
         {
@@ -21,6 +19,26 @@ namespace CompSci_NEA.Tilemap
             IsSolid = isSolid;
             TextureRegion = textureRegion;
             Color = color;
+            VariationRegions = null;
+        }
+
+        public TileType(string name, bool isSolid, Rectangle textureRegion, Color color, List<Rectangle> variationRegions)
+        {
+            Name = name;
+            IsSolid = isSolid;
+            TextureRegion = textureRegion;
+            Color = color;
+            VariationRegions = variationRegions;
+        }
+
+        public Rectangle GetEffectiveTextureRegion(int worldX, int worldY)
+        {
+            if (VariationRegions == null || VariationRegions.Count == 0)
+                return TextureRegion;
+
+            int hash = (worldX * 73856093) ^ (worldY * 19349663);
+            int index = Math.Abs(hash) % VariationRegions.Count;
+            return VariationRegions[index];
         }
     }
 }

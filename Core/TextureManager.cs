@@ -13,6 +13,7 @@ namespace CompSci_NEA.Core
         public static Texture2D TESTGRASS { get; private set; }
         public static Texture2D TESTWATER { get; private set; }
         public static Texture2D ATLAS { get; private set; }
+        public static Texture2D DEBUG_Collider { get; private set; }
 
 
         public static void LoadContent(ContentManager content)
@@ -20,7 +21,8 @@ namespace CompSci_NEA.Core
             Console.WriteLine("loading textures");
             TESTGRASS = content.Load<Texture2D>("TESTGRASS");
             TESTWATER = content.Load<Texture2D>("TESTWATER");
-            ATLAS = content.Load<Texture2D>("ATLASV3");
+            ATLAS = content.Load<Texture2D>("ATLASV6");
+            DEBUG_Collider = content.Load<Texture2D>("DEBUG_Collide");
 
 
             if (TESTGRASS == null) throw new Exception("Failed to load TESTGRASS texture.");

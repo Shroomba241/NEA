@@ -13,51 +13,29 @@ namespace CompSci_NEA.Entities
     {
         private Vector2 position;
         private float lerpAmount = 0.1f;
-        private float zoom = 1.0f; // Default zoom level
-        private float minZoom = 0.001f; // Minimum zoom
-        private float maxZoom = 1.0f; // Maximum zoom
-        private float zoomStep = 0.1f; // Fixed zoom step
-        private int previousScrollValue; // Store previous scroll wheel value
+        private float zoom = 1.0f; 
+        private float minZoom = 0.001f; //this is zoom out
+        private float maxZoom = 4.0f; //this is zoom in
+        private float zoomStep = 0.1f; 
+        private int previousScrollValue; 
 
         public Matrix Transform { get; private set; }
 
         public void Update(Vector2 targetPosition)
         {
-            zoomStep = (float)Math.Pow(2.7f, zoom)/(zoom+16)-0.06f;
-            //Console.WriteLine(zoomStep.ToString());
-            // Smoothly interpolate camera position
+            zoomStep = (float)Math.Pow(2.7f, zoom)/(zoom+20)-0.05f;
             position = Vector2.Lerp(position, targetPosition, lerpAmount);
 
-            // Get current scroll wheel value
             MouseState mouseState = Mouse.GetState();
             int scrollDelta = mouseState.ScrollWheelValue - previousScrollValue;
-
-            // Adjust zoom in fixed steps
-            if (scrollDelta > 0) zoom += zoomStep;  // Scroll up -> Zoom in
-            if (scrollDelta < 0) zoom -= zoomStep;  // Scroll down -> Zoom out
-
-            // Clamp zoom to prevent excessive zooming
+            if (scrollDelta > 0) zoom += zoomStep;
+            if (scrollDelta < 0) zoom -= zoomStep; 
             zoom = MathHelper.Clamp(zoom, minZoom, maxZoom);
-
-            // Store current scroll value for next frame
             previousScrollValue = mouseState.ScrollWheelValue;
-
-            // Create the transformation matrix (position + zoom)
             Transform =
                 Matrix.CreateTranslation(new Vector3(-position, 0)) *
                 Matrix.CreateScale(zoom) *
                 Matrix.CreateTranslation(new Vector3(1920 / 2, 1080 / 2, 0));
         }
-
-        /*private Vector2 position;
-        private float lerpAmount = 0.1f;
-
-        public Matrix Transform { get; private set; }
-
-        public void Update(Vector2 targetPosition)
-        {
-            position = Vector2.Lerp(position, targetPosition, lerpAmount);
-            Transform = Matrix.CreateTranslation(new Vector3(-position + new Vector2(1920/2, 1080/2), 0));
-        }*/
     }
 }

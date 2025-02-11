@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CompSci_NEA.GUI
 {
-    public class SimplePerformance
+    public class SimplePerformance //to work change values in main
     {
         private float elapsedTime = 0f;
         private int frameCount = 0;
@@ -25,7 +25,7 @@ namespace CompSci_NEA.GUI
             elapsedTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             frameCount++;
 
-            if (elapsedTime >= 1.0f) // Update FPS every second
+            if (elapsedTime >= 1.0f)
             {
                 fps = frameCount;
                 frameCount = 0;

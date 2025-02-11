@@ -3,7 +3,6 @@ using CompSci_NEA.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 using System.Data.SqlClient;
 using System.Linq;
 
@@ -27,6 +26,7 @@ namespace CompSci_NEA
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
+
 
         protected override void Initialize()
         {

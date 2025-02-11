@@ -1,21 +1,33 @@
-﻿using System;
+﻿using CompSci_NEA.Scenes;
+using System;
 
 namespace CompSci_NEA.WorldGeneration
 {
     public static class NoiseGenerator
     {
         private static int[] permutationTable;
+        private static Random random;
+
+        public static void SetSeed(int seed)
+        {
+            random = new Random(MOVEDEBUGTEST.SEED);
+            GeneratePermutationTable();
+        }
 
         static NoiseGenerator()
         {
-            Random random = new Random();
-            permutationTable = new int[512];
+            random = new Random(MOVEDEBUGTEST.SEED); 
+            GeneratePermutationTable();
+        }
 
+        private static void GeneratePermutationTable()
+        {
+            permutationTable = new int[512];
             int[] p = new int[256];
+
             for (int i = 0; i < 256; i++)
                 p[i] = i;
 
-            // Shuffle the permutation table
             for (int i = 0; i < 256; i++)
             {
                 int swap = random.Next(256);
@@ -71,7 +83,7 @@ namespace CompSci_NEA.WorldGeneration
                 frequency /= lacunarity;
             }
 
-            return (noiseSum / maxValue + 1) / 2; // Normalize to 0-1
+            return (noiseSum / maxValue + 1) / 2; // Normalize to 0 < noise < 1
         }
     }
 }

@@ -8,30 +8,51 @@ namespace CompSci_NEA.Tilemap
 {
     public abstract class BaseTileMap
     {
-        protected Dictionary<Point, byte[,]> chunks; // Dictionary to store all chunks
+        protected Dictionary<Point, byte[,]> chunks; 
         protected Dictionary<byte, TileType> tileTypes;
         protected Texture2D tileAtlas;
-        protected int chunkSize = 64; // Size of each chunk in tiles
-        protected int totalChunksX; // Total chunks in X direction
-        protected int totalChunksY; // Total chunks in Y direction
+        protected int chunkSize = 64; 
+        protected int totalChunksX; 
+        protected int totalChunksY;
+        protected Random random;
 
-        // Constructor with total chunks parameters
-        protected BaseTileMap(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY)
+        protected BaseTileMap(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY, int seed)
         {
             this.totalChunksX = totalChunksX;
             this.totalChunksY = totalChunksY;
             chunks = new Dictionary<Point, byte[,]>();
             tileTypes = new Dictionary<byte, TileType>
             {
-                { 1, new TileType("Grass", false, new Rectangle(0, 0, 16, 16), Color.Green) },
-                { 2, new TileType("Water", true, new Rectangle(0, 16, 16, 16), Color.DodgerBlue) },
-                { 3, new TileType("Bridge", false, new Rectangle(0, 32, 128, 96), Color.Gray) }
+                { 1, new TileType("GrassTEST", false, new Rectangle(0, 0, 16, 16), Color.Green) },
+                { 2, new TileType("WaterTEST", true, new Rectangle(0, 16, 16, 16), Color.DodgerBlue) },
+                { 3, new TileType("Grass", false, new Rectangle(16, 0, 16, 16), Color.Green,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(32, 0, 16, 16),
+                          new Rectangle(48, 0, 16, 16),
+                          new Rectangle(64, 0, 16, 16)
+                      }) },
+                { 4, new TileType("Dirt", false, new Rectangle(80, 0, 16, 16), Color.SaddleBrown,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(96, 0, 16, 16),
+                          new Rectangle(112, 0, 16, 16),
+                          new Rectangle(128, 0, 16, 16)
+                      }) },
+                { 5, new TileType("Snow", false, new Rectangle(16, 16, 16, 16), Color.LightBlue,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(32, 16, 16, 16),
+                          new Rectangle(48, 16, 16, 16),
+                          new Rectangle(64, 16, 16, 16)
+                      }) }
             };
 
-            GenerateWorld(); // Generate the entire world [NEW] 
+
+            random = new Random(seed);
+            GenerateWorld(); 
         }
 
-        // Method to generate the entire world in chunks [NEW]
         private void GenerateWorld()
         {
             for (int chunkY = 0; chunkY < totalChunksY; chunkY++)
@@ -64,22 +85,25 @@ namespace CompSci_NEA.Tilemap
 
         public byte GetTile(int worldX, int worldY)
         {
+            if (worldX < 0 || worldY < 0)
+                return 0;
+
             int chunkX = worldX / chunkSize;
             int chunkY = worldY / chunkSize;
 
             if (!chunks.ContainsKey(new Point(chunkX, chunkY)))
             {
-                return 0; // Return an empty tile ID or handle appropriately
+                return 0;
             }
 
             int localX = worldX % chunkSize;
             int localY = worldY % chunkSize;
-            return chunks[new Point(chunkX, chunkY)][localY, localX]; // Return the tile from the chunk
+            return chunks[new Point(chunkX, chunkY)][localY, localX];
         }
 
         public Point GetChunkCoordinates(int worldX, int worldY)
         {
-            int chunkX = worldX / (chunkSize * 48); // Adjust for chunk size
+            int chunkX = worldX / (chunkSize * 48); 
             int chunkY = worldY / (chunkSize * 48);
             return new Point(chunkX, chunkY);
         }
