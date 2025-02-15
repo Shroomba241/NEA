@@ -11,30 +11,54 @@ namespace CompSci_NEA.Database
 {
     public class DbFunctions
     {
+        private const string ConnectionString = "Data Source=database.db;Version=3;";
+
         public DbFunctions()
         {
-            string connectionString = "Data Source=database.db;Version=3;";
-
-            using (SQLiteConnection conn = new SQLiteConnection(connectionString))
+            using (SQLiteConnection conn = CreateAndOpenConnection())
             {
-                conn.Open();
-
                 //AddTestEntry(conn);
-
                 DisplayAllUsers(conn);
             }
 
             Console.WriteLine("Done!");
         }
 
+        private SQLiteConnection CreateAndOpenConnection()
+        {
+            var connection = new SQLiteConnection(ConnectionString);
+            connection.Open();
+            return connection;
+        }
+
+        private string ComputeHashPass(string username, string password, SQLiteConnection conn)
+        {
+            Console.WriteLine("hashpass inside con");
+            string salt = "";
+            string query = "SELECT salt FROM Users WHERE username = @username";
+            using (var cmd = new SQLiteCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@username", username);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        salt = reader.GetString(0);
+                    }
+                }
+            }
+            Console.WriteLine("hashpass after con");
+            if (string.IsNullOrEmpty(salt))
+                return "0";
+            Console.WriteLine(salt);
+            return Hasher(password + salt);
+        }
 
         public bool AuthenticateUser(string username, string password)
         {
-            string connectionString = "Data Source=database.db;Version=3;";
-            using (SQLiteConnection conn = new SQLiteConnection(connectionString))
+            using (SQLiteConnection conn = CreateAndOpenConnection())
             {
-                conn.Open();
-                string passwordHash = HashPass(username, password);
+                string passwordHash = ComputeHashPass(username, password, conn);
                 string query = "SELECT COUNT(*) FROM Users WHERE username = @username AND password_hash = @passwordHash";
 
                 using (var cmd = new SQLiteCommand(query, conn))
@@ -43,18 +67,43 @@ namespace CompSci_NEA.Database
                     cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
 
                     int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    conn.Close();
                     return count > 0;
                 }
             }
         }
 
-        public void AddUser(string username, string password) 
+        public bool RegisterUser(string username, string password)
         {
-            string connectionString = "Data Source=database.db;Version=3;";
-            using (SQLiteConnection conn = new SQLiteConnection(connectionString))
+            try
             {
-                conn.Open();
+                using (SQLiteConnection conn = CreateAndOpenConnection())
+                {
+                    string checkQuery = "SELECT COUNT(*) FROM Users WHERE username = @username";
+                    using (SQLiteCommand cmd = new SQLiteCommand(checkQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@username", username);
+                        int userCount = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (userCount > 0)
+                        {
+                            return false; //username isnt unqiue
+                        }
+                    }
+
+                    AddUser(username, password);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in RegisterUser: " + ex.Message);
+                return false;
+            }
+        }
+
+        public void AddUser(string username, string password)
+        {
+            using (SQLiteConnection conn = CreateAndOpenConnection())
+            {
                 var x = CreateHashPass(username, password, conn);
                 string passwordHash = x[0];
                 string salt = x[1];
@@ -144,24 +193,9 @@ namespace CompSci_NEA.Database
 
         public string HashPass(string username, string password)
         {
-            string connectionString = "Data Source=database.db;Version=3;";
-            using (SQLiteConnection conn = new SQLiteConnection(connectionString))
+            using (SQLiteConnection conn = CreateAndOpenConnection())
             {
-                Console.WriteLine("hashpass inside con");
-                conn.Open();
-                string salt = "";
-                string query = "SELECT salt FROM Users WHERE username = @username";
-                using (var cmd = new SQLiteCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    using (var reader = cmd.ExecuteReader())
-                        salt = reader.Read() ? reader.GetString(0) : null;
-                }
-                Console.WriteLine("hashpass after con");
-                if (salt == null)
-                    return "0";
-                Console.WriteLine(salt);
-                return Hasher(password + salt);
+                return ComputeHashPass(username, password, conn);
             }
         }
 
@@ -177,10 +211,9 @@ namespace CompSci_NEA.Database
             byte[] saltBytes = new byte[length];
             using (var rng = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(saltBytes); 
+                rng.GetBytes(saltBytes);
             }
-            return Convert.ToBase64String(saltBytes).Replace("=",""); 
-
+            return Convert.ToBase64String(saltBytes).Replace("=", "");
         }
 
         public string Hasher(string input)
@@ -190,7 +223,7 @@ namespace CompSci_NEA.Database
             int middle = inputBytes.Length / 2;
             byte[] p1 = new byte[middle];
             byte[] p2 = new byte[inputBytes.Length - middle];
-            Array.Copy(inputBytes, 0, p1, 0, middle); 
+            Array.Copy(inputBytes, 0, p1, 0, middle);
             Array.Copy(inputBytes, middle, p2, 0, p2.Length);
             for (int i = 0; i < p1.Length; i++)
             {
@@ -201,7 +234,6 @@ namespace CompSci_NEA.Database
             {
                 p1[i] = (byte)(p1[i] * 6653 * i);
                 p2[i] = (byte)(9091 - p2[i] * 37 * i * 2);
-                
             }
             List<byte> interleaved = new List<byte>();
             int minLength = Math.Min(p1.Length, p2.Length);
@@ -227,7 +259,7 @@ namespace CompSci_NEA.Database
             {
                 part2List.AddRange(remaining);
             }
-            byte[] part2 = part2List.Take(48).ToArray(); 
+            byte[] part2 = part2List.Take(48).ToArray();
 
             byte[] xorResult = new byte[36];
             for (int i = 0; i < 36; i++)
@@ -241,7 +273,5 @@ namespace CompSci_NEA.Database
 
             return base64String;
         }
-
-
     }
 }

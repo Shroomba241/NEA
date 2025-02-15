@@ -23,7 +23,7 @@ namespace CompSci_NEA.Tilemap
             chunks = new Dictionary<Point, byte[,]>();
             tileTypes = new Dictionary<byte, TileType>
             {
-                { 1, new TileType("GrassTEST", false, new Rectangle(0, 0, 16, 16), Color.Green) },
+                { 1, new TileType("GrassTEST", false, new Rectangle(0, 0, 16, 16), Color.DarkGreen) },
                 { 2, new TileType("WaterTEST", true, new Rectangle(0, 16, 16, 16), Color.DodgerBlue) },
                 { 3, new TileType("Grass", false, new Rectangle(16, 0, 16, 16), Color.Green,
                       new List<Rectangle>
@@ -45,7 +45,51 @@ namespace CompSci_NEA.Tilemap
                           new Rectangle(32, 16, 16, 16),
                           new Rectangle(48, 16, 16, 16),
                           new Rectangle(64, 16, 16, 16)
-                      }) }
+                      }) },
+                { 6, new TileType("Beach", false, new Rectangle(16, 32, 16, 16), Color.Yellow,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(32, 32, 16, 16)
+                      }) },
+                { 7, new TileType("Plains", false, new Rectangle(16, 0, 16, 16), Color.Green,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(32, 0, 16, 16),
+                          new Rectangle(48, 0, 16, 16),
+                          new Rectangle(64, 0, 16, 16)
+                      }) },
+                { 8, new TileType("ColourfulPlains", false, new Rectangle(16, 0, 16, 16), Color.LimeGreen,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(32, 0, 16, 16),
+                          new Rectangle(48, 0, 16, 16),
+                          new Rectangle(64, 0, 16, 16),
+                          new Rectangle(80, 0, 16, 16),
+                          new Rectangle(96, 0, 16, 16),
+                          new Rectangle(112, 0, 16, 16),
+                          new Rectangle(128, 0, 16, 16)
+                      }) },
+                { 9, new TileType("Snow", false, new Rectangle(16, 16, 16, 16), Color.LightBlue,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(32, 16, 16, 16),
+                          new Rectangle(48, 16, 16, 16),
+                          new Rectangle(64, 16, 16, 16)
+                      }) },
+                { 10, new TileType("Wetlands", false, new Rectangle(16, 16, 16, 16), Color.Brown) },
+                { 11, new TileType("Savanna", false, new Rectangle(48, 32, 16, 16), Color.YellowGreen,
+                      new List<Rectangle>
+                      {
+                          new Rectangle(64, 32, 16, 16),
+                          new Rectangle(80, 32, 16, 16),
+                          new Rectangle(96, 32, 16, 16),
+                          new Rectangle(112, 32, 16, 16),
+                          new Rectangle(96, 32, 16, 16),
+                          new Rectangle(112, 32, 16, 16),
+                          new Rectangle(96, 32, 16, 16),
+                          new Rectangle(112, 32, 16, 16),
+                          new Rectangle(128, 32, 16, 16)
+                      }) },
             };
 
 

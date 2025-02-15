@@ -1,4 +1,6 @@
-﻿using CompSci_NEA.Core;
+﻿
+
+using CompSci_NEA.Core;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework;
@@ -21,22 +23,22 @@ namespace CompSci_NEA.Scenes
         }
 
         private bool loaded = false;
-
         private UIState currentState = UIState.Welcome;
         private Vector2 offScreen = new Vector2(-500, -500);
 
         private SpriteFont font;
 
         private GUI.Button quitButton;
-        //welcome
+        // welcome
         private GUI.Text titleText;
         private GUI.Button loginButton;
         private GUI.Button signupButton;
-        //login specific
+        // login specific
         private GUI.Text loginTitleText;
-        //signup specific
+        // signup specific
         private GUI.Text signupTitleText;
-        //login and signup
+        private GUI.InputBox confirmPasswordInputBox;
+        // login and signup
         private GUI.Text errorText;
         private GUI.InputBox usernameInputBox;
         private GUI.InputBox passwordInputBox;
@@ -50,17 +52,18 @@ namespace CompSci_NEA.Scenes
 
         private string errorTextContents = "";
 
+        private RenderTarget2D renderTarget;
+        private Effect crtEffect;
 
         private Main game;
 
         public LoginScene(Main game)
         {
             this.game = game;
-
             dbFunctions = new Database.DbFunctions();
         }
 
-        public override void LoadContent() //login init setup for welcome state
+        public override void LoadContent()
         {
             loaded = true;
             font = game.Content.Load<SpriteFont>("DefaultFont");
@@ -70,12 +73,13 @@ namespace CompSci_NEA.Scenes
             signupButton = new GUI.Button(game.GraphicsDevice, font, "Sign-Up", new Vector2(100, 700), 400, 90);
             quitButton = new GUI.Button(game.GraphicsDevice, font, "Quit", new Vector2(100, 800), 400, 90);
 
-            //start offscreen
             loginTitleText = new GUI.Text(font, "Login", offScreen, Color.White, 3.0f);
             signupTitleText = new GUI.Text(font, "Sign-Up", offScreen, Color.White, 3.0f);
             errorText = new GUI.Text(font, errorTextContents, offScreen, Color.Red, 2.0f);
             usernameInputBox = new GUI.InputBox(game.GraphicsDevice, font, offScreen, 800, 90, false, 15);
             passwordInputBox = new GUI.InputBox(game.GraphicsDevice, font, offScreen, 800, 90, true, 15);
+            confirmPasswordInputBox = new GUI.InputBox(game.GraphicsDevice, font, offScreen, 800, 90, true, 15);
+
             cancelButton = new GUI.Button(game.GraphicsDevice, font, "Cancel", offScreen, 400, 90);
             submitButton = new GUI.Button(game.GraphicsDevice, font, "Submit", offScreen, 400, 90);
 
@@ -88,8 +92,14 @@ namespace CompSci_NEA.Scenes
 
             usernameInputBox.OnClickAction = () => OnActiveInputBoxClick(usernameInputBox);
             passwordInputBox.OnClickAction = () => OnActiveInputBoxClick(passwordInputBox);
+            confirmPasswordInputBox.OnClickAction = () => OnActiveInputBoxClick(confirmPasswordInputBox);
 
-            allInputBoxes = new GUI.InputBox[] { usernameInputBox, passwordInputBox, };
+            allInputBoxes = new GUI.InputBox[] { usernameInputBox, passwordInputBox, confirmPasswordInputBox };
+
+            renderTarget = new RenderTarget2D(game.GraphicsDevice, game.GraphicsDevice.PresentationParameters.BackBufferWidth,
+                                        game.GraphicsDevice.PresentationParameters.BackBufferHeight);
+
+            crtEffect = game.Content.Load<Effect>("CRTEffect");
 
             game.pauseCurrentSceneUpdateing = false;
         }
@@ -108,19 +118,19 @@ namespace CompSci_NEA.Scenes
 
                 usernameInputBox.Update(gameTime);
                 passwordInputBox.Update(gameTime);
+                confirmPasswordInputBox.Update(gameTime);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
-
-
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
             if (!loaded) return;
-            game.GraphicsDevice.Clear(Color.Blue);
+            game.GraphicsDevice.SetRenderTarget(renderTarget);
+            game.GraphicsDevice.Clear(Color.Blue);  
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
@@ -135,6 +145,7 @@ namespace CompSci_NEA.Scenes
 
             usernameInputBox.Draw(spriteBatch);
             passwordInputBox.Draw(spriteBatch);
+            confirmPasswordInputBox.Draw(spriteBatch);
 
             cancelButton.Draw(spriteBatch);
             submitButton.Draw(spriteBatch);
@@ -142,13 +153,21 @@ namespace CompSci_NEA.Scenes
             errorText.UpdateContent(errorTextContents);
 
             spriteBatch.End();
+
+
+            if (crtEffect.Parameters["Resolution"] != null)
+                crtEffect.Parameters["Resolution"].SetValue(new Vector2(renderTarget.Width, renderTarget.Height));
+
+            game.GraphicsDevice.SetRenderTarget(null);
+            spriteBatch.Begin(effect: crtEffect, samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);
+            spriteBatch.Draw(renderTarget, new Rectangle(0, 0, renderTarget.Width, renderTarget.Height), Color.White);
+            spriteBatch.End();
         }
 
         private void SwitchState(UIState newState)
         {
-            Console.WriteLine(loaded);
-            if (!loaded) return;
-            Console.WriteLine("updateing");
+            ClearInputBoxes();
+
             currentState = newState;
 
             if (newState == UIState.Welcome)
@@ -165,10 +184,12 @@ namespace CompSci_NEA.Scenes
 
                 usernameInputBox.Move(offScreen);
                 passwordInputBox.Move(offScreen);
+                confirmPasswordInputBox.Move(offScreen);
 
                 cancelButton.Move(offScreen);
                 submitButton.Move(offScreen);
 
+                submitButton.OnClickAction = () => { AttemptingLogin(usernameInputBox.GetText(), passwordInputBox.GetText()); };
             }
             else if (newState == UIState.Login)
             {
@@ -178,11 +199,17 @@ namespace CompSci_NEA.Scenes
                 quitButton.Move(offScreen);
 
                 loginTitleText.position = new Vector2(100, 50);
+                signupTitleText.position = offScreen;
                 errorText.position = new Vector2(100, 400);
+
                 usernameInputBox.Move(new Vector2(100, 200));
                 passwordInputBox.Move(new Vector2(100, 300));
+                confirmPasswordInputBox.Move(offScreen);
+
                 submitButton.Move(new Vector2(100, 700));
                 cancelButton.Move(new Vector2(100, 800));
+
+                submitButton.OnClickAction = () => { AttemptingLogin(usernameInputBox.GetText(), passwordInputBox.GetText()); };
             }
             else if (newState == UIState.Signup)
             {
@@ -192,10 +219,28 @@ namespace CompSci_NEA.Scenes
                 quitButton.Move(offScreen);
 
                 signupTitleText.position = new Vector2(100, 50);
-                errorText.position = new Vector2(100, 400);
+                loginTitleText.position = offScreen;
+                errorText.position = new Vector2(100, 500);
+
+
+                usernameInputBox.Move(new Vector2(100, 200));
+                passwordInputBox.Move(new Vector2(100, 300));
+                confirmPasswordInputBox.Move(new Vector2(100, 400));
+
                 submitButton.Move(new Vector2(100, 700));
                 cancelButton.Move(new Vector2(100, 800));
+
+                submitButton.OnClickAction = () => { AttemptingSignup(usernameInputBox.GetText(), passwordInputBox.GetText(), confirmPasswordInputBox.GetText()); };
             }
+        }
+
+        private void ClearInputBoxes()
+        {
+            Console.WriteLine("boxes cleared");
+            usernameInputBox.SetText("");
+            passwordInputBox.SetText("");
+            confirmPasswordInputBox.SetText("");
+            errorTextContents = "";
         }
 
         private void OnActiveInputBoxClick(GUI.InputBox nowActive)
@@ -212,7 +257,6 @@ namespace CompSci_NEA.Scenes
             if (!UsernameFormatChecker(username) || !PasswordFormatChecker(password))
             {
                 return;
-
             }
 
             bool isAuthenticated = dbFunctions.AuthenticateUser(username, password);
@@ -223,11 +267,33 @@ namespace CompSci_NEA.Scenes
                 return;
             }
 
-            //put stwitchstate here
             game.ChangeState(GameState.DEBUG);
-            Console.WriteLine("sucess!!");
+            Console.WriteLine("Login successful!!");
         }
 
+        private void AttemptingSignup(string username, string password, string confirmPassword)
+        {
+            if (!UsernameFormatChecker(username) || !PasswordFormatChecker(password))
+            {
+                return;
+            }
+
+            if (password != confirmPassword)
+            {
+                errorTextContents = "Passwords do not match.";
+                return;
+            }
+
+            bool isRegistered = dbFunctions.RegisterUser(username, password);
+            if (!isRegistered)
+            {
+                errorTextContents = "Username is not original.";
+                return;
+            }
+
+            Console.WriteLine("Signup successful!!");
+            game.ChangeState(GameState.DEBUG);
+        }
         private bool UsernameFormatChecker(string username)
         {
             if (username.Length < 3)
@@ -266,24 +332,19 @@ namespace CompSci_NEA.Scenes
         public override void Shutdown()
         {
             loaded = false;
-            // Unload specific resources here
-            font = null;
 
-            // Set GUI elements to null
             titleText = null;
             loginButton = null;
             signupButton = null;
             quitButton = null;
             loginTitleText = null;
             signupTitleText = null;
-            errorText = null;
             usernameInputBox = null;
             passwordInputBox = null;
+            confirmPasswordInputBox = null;
             cancelButton = null;
             submitButton = null;
 
-            // Set other resources to null or dispose them if necessary
-            dbFunctions = null;
             activeInputBox = null;
             allInputBoxes = null;
         }

@@ -21,7 +21,7 @@ namespace CompSci_NEA.Core
             Console.WriteLine("loading textures");
             TESTGRASS = content.Load<Texture2D>("TESTGRASS");
             TESTWATER = content.Load<Texture2D>("TESTWATER");
-            ATLAS = content.Load<Texture2D>("ATLASV6");
+            ATLAS = content.Load<Texture2D>("ATLASV7");
             DEBUG_Collider = content.Load<Texture2D>("DEBUG_Collide");
 
 

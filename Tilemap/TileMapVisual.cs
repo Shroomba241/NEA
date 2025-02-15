@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿
+
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
 using CompSci_NEA.WorldGeneration;
@@ -16,12 +18,9 @@ namespace CompSci_NEA.Tilemap
         public TileMapVisual(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY, int seed)
             : base(graphicsDevice, totalChunksX, totalChunksY, seed)
         {
-            Console.WriteLine(seed);
-            seed = this.seed;
+            this.seed = seed;
             tileAtlas = TextureManager.ATLAS;
             NoiseGenerator.SetSeed(seed);
-            // Note to Self Do NOT call baseWorldGenerator initialization here because GenerateTile might be
-            // called from BaseTileMap's constructor before this constructor body is executed.
         }
 
         private GenerateBaseWorld _baseWorldGenerator;
@@ -37,19 +36,23 @@ namespace CompSci_NEA.Tilemap
             }
         }
 
-        public override byte GenerateTile(int x, int y)
+        public void ResetBiomePartition()
         {
-            return BaseWorldGenerator.GenerateTile(x, y);
         }
 
-        public void Draw(SpriteBatch spriteBatch, Entities.Player player)
+        public override byte GenerateTile(int x, int y)
+        {
+            return BaseWorldGenerator.GenerateFinalTile(x, y);
+        }
+
+        public void Draw(SpriteBatch spriteBatch, Player player)
         {
             int chunkX = (int)(player.Position.X / (48 * chunkSize));
             int chunkY = (int)(player.Position.Y / (48 * chunkSize));
 
-            for (int offsetY = -2; offsetY <= 2; offsetY++)
+            for (int offsetY = -1; offsetY <= 1; offsetY++)
             {
-                for (int offsetX = -2; offsetX <= 2; offsetX++)
+                for (int offsetX = -1; offsetX <= 1; offsetX++)
                 {
                     int currentChunkX = chunkX + offsetX;
                     int currentChunkY = chunkY + offsetY;
@@ -87,8 +90,19 @@ namespace CompSci_NEA.Tilemap
 
                     Rectangle destinationRect = new Rectangle((int)position.X, (int)position.Y, 48, 48);
                     spriteBatch.Draw(tileAtlas, destinationRect, sourceRect, Color.White);
+                    //spriteBatch.Draw(tileAtlas, destinationRect, sourceRect, tileType.Color);
                 }
             }
+        }
+
+        public Texture2D GenerateTemperatureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
+        {
+            return _baseWorldGenerator.GenerateTemperatureTexture(graphicsDevice, textureWidth, textureHeight);
+        }
+
+        public Texture2D GenerateMoistureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
+        {
+            return _baseWorldGenerator.GenerateMoistureTexture(graphicsDevice, textureWidth, textureHeight);
         }
 
         public Texture2D GenerateMapTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight, StructureTileMap structures)
@@ -130,6 +144,6 @@ namespace CompSci_NEA.Tilemap
             Console.WriteLine("map generated");
             return mapTexture;
         }
-
     }
+
 }

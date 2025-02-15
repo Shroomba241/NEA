@@ -20,14 +20,16 @@ namespace CompSci_NEA.GUI
         public bool isActive;
         private Texture2D backgroundTexture;
 
-        private Dictionary<Keys, double> keyTimers;
-        private const double KeyRepeatDelay = 250;
-
         private bool wasMousePressed = false;
         private bool obscured;
         private int limit;
 
         public Action OnClickAction;
+
+        private double keyRepeatTimer = 0;
+        private const double InitialKeyDelay = 400; 
+        private const double KeyRepeatRate = 50;   
+        private Keys lastKeyPressed = Keys.None;
 
 
         public InputBox(GraphicsDevice graphicsDevice, SpriteFont font, Vector2 position, int width, int height, bool obscured, int limit)
@@ -39,9 +41,6 @@ namespace CompSci_NEA.GUI
             this.text = string.Empty;
             this.isActive = false;
             this.obscured = obscured;
-            this.limit = limit;
-
-            keyTimers = new Dictionary<Keys, double>();
 
             backgroundTexture = new Texture2D(graphicsDevice, 1, 1);
             backgroundTexture.SetData(new[] { Color.White });
@@ -52,59 +51,66 @@ namespace CompSci_NEA.GUI
 
         public void Update(GameTime gameTime)
         {
-            double elapsedTime = gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (isActive)
-            {
-                KeyboardState state = Keyboard.GetState();
-                foreach (Keys key in state.GetPressedKeys())
-                {
-                    if (!keyTimers.ContainsKey(key))
-                    {
-                        keyTimers[key] = 0; 
-                    }
-
-                    if (keyTimers[key] <= 0)
-                    {
-                        HandleKeyPress(key);
-                        keyTimers[key] = KeyRepeatDelay;
-                    }
-                }
-
-                foreach (Keys key in keyTimers.Keys.ToList())
-                {
-                    if (state.IsKeyDown(key))
-                    {
-                        keyTimers[key] -= elapsedTime;
-                    }
-                    else
-                    {
-                        keyTimers.Remove(key); 
-                    }
-                }
-
-                if (obscured)
-                {
-                    inputText.UpdateContent(new string('*', text?.Length ?? 0));
-                }
-                else { inputText.UpdateContent(text); }
-
-                color = Color.DarkGray;
-            }
-            else color = Color.Gray;
-
+            KeyboardState keyboardState = Keyboard.GetState();
             MouseState mouseState = Mouse.GetState();
-            bool isMousePressed = mouseState.LeftButton == ButtonState.Pressed;
+            double elapsedTime = gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            if (bounds.Contains(mouseState.X, mouseState.Y) && isMousePressed && !wasMousePressed)
+            bool isMouseClicked = mouseState.LeftButton == ButtonState.Pressed;
+            if (bounds.Contains(mouseState.X, mouseState.Y) && isMouseClicked && !wasMousePressed)
             {
-                isActive = !isActive;
+                isActive = true;
                 OnClick();
             }
+            else if (isMouseClicked && !bounds.Contains(mouseState.X, mouseState.Y))
+            {
+                isActive = false;
+            }
+            wasMousePressed = isMouseClicked;
 
-            wasMousePressed = isMousePressed;
+            if (isActive)
+            {
+                Keys[] pressedKeys = keyboardState.GetPressedKeys();
+                Keys? keyToProcess = null;
 
-            
+                if (pressedKeys.Length > 0)
+                {
+                    Keys key = pressedKeys[0];
+
+                    if (key != lastKeyPressed)
+                    {
+                        keyRepeatTimer = InitialKeyDelay; 
+                        keyToProcess = key;
+                    }
+                    else if (keyRepeatTimer <= 0)
+                    {
+                        keyRepeatTimer = KeyRepeatRate; 
+                        keyToProcess = key;
+                    }
+
+                    lastKeyPressed = key;
+                }
+                else
+                {
+                    lastKeyPressed = Keys.None;
+                    keyRepeatTimer = 0; 
+                }
+
+                if (lastKeyPressed != Keys.None)
+                {
+                    keyRepeatTimer -= elapsedTime;
+                }
+
+                if (keyToProcess.HasValue)
+                {
+                    HandleKeyPress(keyToProcess.Value);
+                }
+
+                inputText.UpdateContent(obscured ? new string('*', text.Length) : text);
+            }
+
+            color = isActive ? Color.DarkGray : Color.Gray;
         }
+
 
         private void HandleKeyPress(Keys key)
         {
@@ -139,6 +145,16 @@ namespace CompSci_NEA.GUI
         public string GetText()
         {
             return text;
+        }
+
+        public void SetText(string newText)
+        {
+            /*if (newText.Length > limit)
+            {
+                newText = newText.Substring(0, limit);
+            }*/
+            Console.WriteLine($"{text}  {newText}");
+            text = newText;
         }
 
         private void OnClick()

@@ -38,6 +38,7 @@ namespace CompSci_NEA.Entities
             Vector2 newVelocity = velocity;
 
             bool disableCollisions = keyState.IsKeyDown(Keys.LeftShift);
+            //disableCollisions = true; //debug
             maxSpeed = disableCollisions ? 150f : 15f;
 
             if (keyState.IsKeyDown(Keys.W)) newVelocity.Y -= acceleration;

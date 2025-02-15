@@ -31,13 +31,13 @@ namespace CompSci_NEA.WorldGeneration.Structures
         private Random random;
 
         private static readonly int[] possibleX = { 0, 16, 32, 48, 64, 80, 96, 112 };
-        private static readonly int[] possibleY = { 64, 80 };
+        private static readonly int[] possibleY = { 160, 176 }; 
         private static readonly int[] railingX = { 16, 32, 48, 64, 80, 96 };
-        private static readonly int[] railingY = { 48 };
+        private static readonly int[] railingY = { 144 }; 
         private static readonly int[] railingBottomX = { 16, 32, 48, 64, 80, 96 };
-        private static readonly int[] railingBottomY = { 112 };
+        private static readonly int[] railingBottomY = { 208 }; 
         private static readonly int[] pillarX = { 0, 112 };
-        private static readonly int[] pillarY = { 48 };
+        private static readonly int[] pillarY = { 144 }; 
 
         private const int tileSpacing = 48;
         private const int substractOffset = 10;
@@ -64,7 +64,7 @@ namespace CompSci_NEA.WorldGeneration.Structures
             int baseBottomY = startY + tileSpacing;
             int railingBottomYPos = startY + tileSpacing * 2 - substractOffset;
             int supportY = startY + tileSpacing * 3 - substractOffset;
-            Rectangle supportTextureRegion = new Rectangle(0, 128, 128, 48);
+            Rectangle supportTextureRegion = new Rectangle(0, 224, 128, 48);
 
             for (int i = 0; i < length; i++)
             {
@@ -203,7 +203,6 @@ namespace CompSci_NEA.WorldGeneration.Structures
 
             foreach (var tile in bottomRailingTiles)
             {
-                // Create a collision rectangle based on the drawn position.
                 Rectangle collider = new Rectangle((int)tile.position.X, (int)tile.position.Y + 48, colliderWidth, colliderHeight);
                 colliders.Add(collider);
             }

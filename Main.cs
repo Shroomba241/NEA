@@ -32,14 +32,14 @@ namespace CompSci_NEA
         {
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
-            //_graphics.IsFullScreen = true;
+            _graphics.IsFullScreen = true;
             _graphics.HardwareModeSwitch = false; //boarderless windowed
             //_graphics.SynchronizeWithVerticalRetrace = false; // Disable VSync
             //IsFixedTimeStep = false;
             _graphics.ApplyChanges();
             
 
-            currentState = Core.GameState.DEBUG;
+            currentState = Core.GameState.Login;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
             //_dbFunctions = new Database.DbFunctions();
@@ -90,6 +90,9 @@ namespace CompSci_NEA
                     break;
                 case GameState.DEBUG:
                     currentScene = new MOVEDEBUGTEST(this);
+                    break;
+                case GameState.ZoneATest:
+                    currentScene = new ZoneABiomeTesting(this);
                     break;
             }
             currentScene.LoadContent();

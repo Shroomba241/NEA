@@ -63,9 +63,9 @@ namespace CompSci_NEA.Tilemap
         {
             int chunkX = (int)(player.Position.X / (48 * chunkSize));
             int chunkY = (int)(player.Position.Y / (48 * chunkSize));
-            for (int offsetY = -2; offsetY <= 2; offsetY++)
+            for (int offsetY = -1; offsetY <= 1; offsetY++)
             {
-                for (int offsetX = -2; offsetX <= 2; offsetX++)
+                for (int offsetX = -1; offsetX <= 1; offsetX++)
                 {
                     int currentChunkX = chunkX + offsetX;
                     int currentChunkY = chunkY + offsetY;
