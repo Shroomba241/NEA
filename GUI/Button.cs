@@ -2,10 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompSci_NEA.GUI
 {
@@ -19,19 +15,29 @@ namespace CompSci_NEA.GUI
         private Text buttonText;
         public bool IsHovered = false;
         private bool isHeld;
-        public Action OnClickAction; 
+        private Vector2 positionOffset;
+        public Action OnClickAction;
 
+        // Constructor #1: Uses a default text scale of 3.0f.
         public Button(GraphicsDevice graphicsDevice, SpriteFont font, string text, Vector2 position, int width, int height)
+            : this(graphicsDevice, font, text, position, width, height, 3.0f, new Vector2(20, 20))
+        {
+        }
+
+        // Constructor #2: Accepts a custom text scale.
+        public Button(GraphicsDevice graphicsDevice, SpriteFont font, string text, Vector2 position, int width, int height, float textScale, Vector2 positionOffset)
         {
             bounds = new Rectangle((int)position.X, (int)position.Y, width, height);
             normalColor = Color.White;
             hoverColor = Color.Gray;
             currentColor = normalColor;
+            this.positionOffset = positionOffset;
 
             backgroundTexture = new Texture2D(graphicsDevice, 1, 1);
             backgroundTexture.SetData(new[] { Color.DarkSlateGray });
 
-            buttonText = new Text(font, text, position + new Vector2(20, 20), Color.White, 3.0f);
+            // Create the Text object with the specified text scale.
+            buttonText = new Text(font, text, position + positionOffset, Color.White, textScale);
         }
 
         public void Update()
@@ -41,10 +47,13 @@ namespace CompSci_NEA.GUI
             {
                 currentColor = hoverColor;
                 IsHovered = true;
-                if(mouseState.LeftButton == ButtonState.Pressed) { isHeld = true; }
+                if (mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    isHeld = true;
+                }
                 if (mouseState.LeftButton == ButtonState.Released && isHeld)
                 {
-                    OnClick();    
+                    OnClick();
                     isHeld = false;
                 }
             }
@@ -64,7 +73,7 @@ namespace CompSci_NEA.GUI
         public void Move(Vector2 newPosition)
         {
             bounds = new Rectangle((int)newPosition.X, (int)newPosition.Y, bounds.Width, bounds.Height);
-            buttonText.position = newPosition + new Vector2(20, 20);
+            buttonText.position = newPosition + positionOffset;
         }
 
         private void OnClick()

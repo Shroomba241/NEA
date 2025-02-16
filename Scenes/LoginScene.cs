@@ -267,7 +267,16 @@ namespace CompSci_NEA.Scenes
                 return;
             }
 
-            game.ChangeState(GameState.DEBUG);
+            bool isAdmin = dbFunctions.IsUserAdmin(username);
+            game.LoggedInUsername = username;
+            if (isAdmin)
+            {
+                game.ChangeState(GameState.AdminView); // Load the AdminView scene
+            }
+            else
+            {
+                game.ChangeState(GameState.DEBUG); // Regular view scene
+            }
             Console.WriteLine("Login successful!!");
         }
 
@@ -292,7 +301,7 @@ namespace CompSci_NEA.Scenes
             }
 
             Console.WriteLine("Signup successful!!");
-            game.ChangeState(GameState.DEBUG);
+            game.ChangeState(GameState.AdminView);
         }
         private bool UsernameFormatChecker(string username)
         {

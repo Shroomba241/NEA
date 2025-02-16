@@ -9,6 +9,7 @@ namespace CompSci_NEA.Core
     public enum GameState
     {
         Login,
+        AdminView,
         DEBUG,
         ZoneATest
     }

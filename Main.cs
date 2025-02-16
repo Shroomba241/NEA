@@ -15,6 +15,7 @@ namespace CompSci_NEA
         public Core.GameState currentState;
         private Scenes.Scene currentScene;
         public bool pauseCurrentSceneUpdateing;
+        public string LoggedInUsername { get; set; }
 
         //idk if these need to be here or maybe i could scene them somewhere.
         private Database.DbFunctions _dbFunctions;
@@ -39,7 +40,7 @@ namespace CompSci_NEA
             _graphics.ApplyChanges();
             
 
-            currentState = Core.GameState.Login;
+            currentState = Core.GameState.AdminView;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
             //_dbFunctions = new Database.DbFunctions();
@@ -93,6 +94,10 @@ namespace CompSci_NEA
                     break;
                 case GameState.ZoneATest:
                     currentScene = new ZoneABiomeTesting(this);
+                    break;
+                case GameState.AdminView:
+                    LoggedInUsername = "Shroomba";
+                    currentScene = new AdminView(this);
                     break;
             }
             currentScene.LoadContent();

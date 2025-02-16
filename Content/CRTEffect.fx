@@ -9,7 +9,7 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
     
     float modY = fmod(pixelY, 6.0);
 
-    if (modY < 3.0)
+    if (modY < 2.0)
     {
         return float4(originalColor.rgb * 0.5, originalColor.a);
     }

@@ -18,7 +18,8 @@ namespace CompSci_NEA.Database
             using (SQLiteConnection conn = CreateAndOpenConnection())
             {
                 //AddTestEntry(conn);
-                DisplayAllUsers(conn);
+                EnsureUser1IsAdmin();
+                //DisplayAllUsers(conn);
             }
 
             Console.WriteLine("Done!");
@@ -72,6 +73,25 @@ namespace CompSci_NEA.Database
             }
         }
 
+        public bool IsUserAdmin(string username)
+        {
+            using (SQLiteConnection conn = CreateAndOpenConnection())
+            {
+                string query = "SELECT admin FROM Users WHERE username = @username";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+                    object result = cmd.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        int adminFlag = Convert.ToInt32(result);
+                        return adminFlag == 1;
+                    }
+                }
+            }
+            return false;
+        }
+
         public bool RegisterUser(string username, string password)
         {
             try
@@ -85,7 +105,7 @@ namespace CompSci_NEA.Database
                         int userCount = Convert.ToInt32(cmd.ExecuteScalar());
                         if (userCount > 0)
                         {
-                            return false; //username isnt unqiue
+                            return false; // username isn't unique
                         }
                     }
 
@@ -124,8 +144,20 @@ namespace CompSci_NEA.Database
             }
         }
 
+        private void EnsureUser1IsAdmin()
+        {
+            using (SQLiteConnection conn = CreateAndOpenConnection())
+            {
+                string updateQuery = "UPDATE Users SET admin = 1 WHERE user_id = 1";
+                using (SQLiteCommand cmd = new SQLiteCommand(updateQuery, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         //-------------------------------------------------------------------------------------------
-        static void AddTestEntry(SQLiteConnection conn) //DEBUG
+        static void AddTestEntry(SQLiteConnection conn) // DEBUG
         {
             string insertTestUser = @"
                 INSERT INTO Users (username, password_hash, admin, coins) 
@@ -157,7 +189,7 @@ namespace CompSci_NEA.Database
             }
         }
 
-        static void DisplayAllUsers(SQLiteConnection conn) //DEBUG
+        static void DisplayAllUsers(SQLiteConnection conn) // DEBUG
         {
             string query = @"
                 SELECT 
@@ -272,6 +304,46 @@ namespace CompSci_NEA.Database
             Console.WriteLine(base64String.Length);
 
             return base64String;
+        }
+
+
+        public List<string[]> GetAllUserData()
+        {
+            List<string[]> data = new List<string[]>();
+
+            using (SQLiteConnection conn = CreateAndOpenConnection())
+            {
+                string query = "SELECT user_id, username, admin, coins FROM Users";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string userId = reader["user_id"].ToString();
+                        string username = reader["username"].ToString();
+                        string admin = reader["admin"].ToString();
+                        string coins = reader["coins"].ToString();
+                        data.Add(new string[] { userId, username, admin, coins });
+                    }
+                }
+            }
+            //Console.WriteLine(string.Join(" | ", data.Select(row => string.Join(", ", row))));
+
+            return data;
+        }
+
+        public void UpdateUserData(int userId, string columnName, string newValue)
+        {
+            using (SQLiteConnection conn = CreateAndOpenConnection())
+            {
+                string query = $"UPDATE Users SET {columnName} = @newValue WHERE user_id = @userId";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@newValue", newValue);
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }
