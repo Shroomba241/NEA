@@ -16,23 +16,23 @@ namespace CompSci_NEA.GUI
         private float cellPadding;
         private List<string[]> tableRows;
         private string[] colHeaders;
-        private List<float> colWidths;
+        private List<float> _colWidths;
         private Color headerColour;
         private Color rowColour;
         private Color backgroundColour;
         private float uiScale;
-        private Texture2D basicTexture;
+        private Texture2D _basicTexture;
         //changing pages stuff
-        private int currentPage;
-        private int rowsPerPage;
-        private int totalPages;
-        private Button previousButton;
-        private Button nextButton;
-        private Text pageIndicatorText;
+        protected int currentPage;
+        protected int rowsPerPage;
+        private int _totalPages;
+        protected Button previousButton;
+        protected Button nextButton;
+        protected Text pageIndicatorText;
         //selection
-        private int? selectedRow;
-        private int? selectedCol;
-        private MouseState prevMouseState;
+        private int? _selectedRow;
+        private int? _selectedCol;
+        private MouseState _prevMouseState;
 
         public bool IgnoreMouseClicks { get; set; }
 
@@ -49,44 +49,44 @@ namespace CompSci_NEA.GUI
             this.backgroundColour = new Color(0, 0, 0, 150);
             this.uiScale = uiScale;
 
-            basicTexture = new Texture2D(graphicsDevice, 1, 1);
-            basicTexture.SetData(new[] { Color.White });
+            _basicTexture = new Texture2D(graphicsDevice, 1, 1);
+            _basicTexture.SetData(new[] { Color.White });
 
             //calculates dimensions stuff
-            colWidths = new List<float>();
+            _colWidths = new List<float>();
             foreach (var header in colHeaders)
             {
                 float width = font.MeasureString(header).X + cellPadding * 2;
-                colWidths.Add(width);
+                _colWidths.Add(width);
             }
 
             foreach (var row in tableRows)
             {
-                for (int i = 0; i < row.Length && i < colWidths.Count; i++)
+                for (int i = 0; i < row.Length && i < _colWidths.Count; i++)
                 {
                     float cellWidth = font.MeasureString(row[i]).X + cellPadding * 2;
-                    if (cellWidth > colWidths[i])
-                        colWidths[i] = cellWidth;
+                    if (cellWidth > _colWidths[i])
+                        _colWidths[i] = cellWidth;
                 }
             }
 
             rowsPerPage = 8;
             currentPage = 0;
-            totalPages = (int)Math.Ceiling((float)tableRows.Count / rowsPerPage);
+            _totalPages = (int)Math.Ceiling((float)tableRows.Count / rowsPerPage);
 
-            float scaledTotalWidth = colWidths.Sum() * uiScale;
+            float scaledTotalWidth = _colWidths.Sum() * uiScale;
             float scaledCellHeight = cellHeight * uiScale;
             float pageNavY = position.Y + scaledCellHeight * (rowsPerPage + 1) + 10;
 
             previousButton = new Button(graphicsDevice, font, "Prev", new Vector2(position.X, pageNavY), 100, 40, 1.0f, new Vector2(15, 14));
             nextButton = new Button(graphicsDevice, font, "Next", new Vector2(position.X + scaledTotalWidth - 100, pageNavY), 100, 40, 1.0f, new Vector2(15, 14));
             previousButton.OnClickAction = () => { if (currentPage > 0) currentPage--; };
-            nextButton.OnClickAction = () => { if (currentPage < totalPages - 1) currentPage++; };
+            nextButton.OnClickAction = () => { if (currentPage < _totalPages - 1) currentPage++; };
 
             pageIndicatorText = new Text(font, "", new Vector2(position.X + scaledTotalWidth / 2 - 100, pageNavY + 15), Color.White, uiScale * 0.8f);
             UpdatePageIndicator();
 
-            prevMouseState = Mouse.GetState();
+            _prevMouseState = Mouse.GetState();
         }
 
         public void Update()
@@ -95,22 +95,22 @@ namespace CompSci_NEA.GUI
             nextButton.Update();
 
             MouseState currentMouseState = Mouse.GetState();
-            if (!IgnoreMouseClicks && prevMouseState.LeftButton == ButtonState.Released &&
+            if (!IgnoreMouseClicks && _prevMouseState.LeftButton == ButtonState.Released &&
                 currentMouseState.LeftButton == ButtonState.Pressed)
             {
                 HandleCellClick(currentMouseState);
             }
-            prevMouseState = currentMouseState;
+            _prevMouseState = currentMouseState;
 
-            totalPages = (int)Math.Ceiling((float)tableRows.Count / rowsPerPage);
-            if (currentPage >= totalPages) currentPage = totalPages - 1;
+            _totalPages = (int)Math.Ceiling((float)tableRows.Count / rowsPerPage);
+            if (currentPage >= _totalPages) currentPage = _totalPages - 1;
             if (currentPage < 0) currentPage = 0;
             UpdatePageIndicator();
         }
 
         private void HandleCellClick(MouseState mouseState)
         {
-            float scaledTotalWidth = colWidths.Sum() * uiScale;
+            float scaledTotalWidth = _colWidths.Sum() * uiScale;
             float scaledCellHeight = cellHeight * uiScale;
             float dataStartY = position.Y + scaledCellHeight;
             float dataEndY = position.Y + scaledCellHeight * (rowsPerPage + 1);
@@ -126,7 +126,7 @@ namespace CompSci_NEA.GUI
                 float relativeX = mouseState.X - position.X;
                 int colIndex = 0;
                 float cumWidth = 0;
-                List<float> scaledColumnWidths = colWidths.Select(width => width * uiScale).ToList();
+                List<float> scaledColumnWidths = _colWidths.Select(width => width * uiScale).ToList();
                 for (int i = 0; i < scaledColumnWidths.Count; i++)
                 {
                     cumWidth += scaledColumnWidths[i];
@@ -139,8 +139,8 @@ namespace CompSci_NEA.GUI
 
                 if (globalRowIndex < tableRows.Count && colIndex < colHeaders.Length)
                 {
-                    selectedRow = globalRowIndex;
-                    selectedCol = colIndex;
+                    _selectedRow = globalRowIndex;
+                    _selectedCol = colIndex;
                 }
                 else
                 {
@@ -155,16 +155,16 @@ namespace CompSci_NEA.GUI
 
         private void UpdatePageIndicator()
         {
-            pageIndicatorText.UpdateContent($"Page {currentPage + 1} / {totalPages}");
+            pageIndicatorText.UpdateContent($"Page {currentPage + 1} / {_totalPages}");
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            float scaledTotalWidth = colWidths.Sum() * uiScale;
+            float scaledTotalWidth = _colWidths.Sum() * uiScale;
             float scaledCellHeight = cellHeight * uiScale;
             float tableHeight = scaledCellHeight * (rowsPerPage + 1);
 
-            spriteBatch.Draw(basicTexture, new Rectangle((int)position.X, (int)position.Y, (int)scaledTotalWidth, (int)tableHeight), backgroundColour);
+            spriteBatch.Draw(_basicTexture, new Rectangle((int)position.X, (int)position.Y, (int)scaledTotalWidth, (int)tableHeight), backgroundColour);
 
             //col headers drawing
             Vector2 currentPos = position;
@@ -174,7 +174,7 @@ namespace CompSci_NEA.GUI
                 Vector2 headerSize = font.MeasureString(headerText) * uiScale;
                 Vector2 headerPos = new Vector2(currentPos.X + cellPadding * uiScale, currentPos.Y + (scaledCellHeight - headerSize.Y) / 2);
                 spriteBatch.DrawString(font, headerText, headerPos, headerColour, 0f, Vector2.Zero, uiScale, SpriteEffects.None, 0f);
-                currentPos.X += (colWidths[i] * uiScale);
+                currentPos.X += (_colWidths[i] * uiScale);
             }
 
             currentPos = new Vector2(position.X, position.Y + scaledCellHeight);
@@ -188,12 +188,12 @@ namespace CompSci_NEA.GUI
             {
                 //highlight row which contains the selected cell
                 //TODO make this bring up other tables, maybe in scene class though
-                if (selectedRow.HasValue && selectedRow.Value == i)
-                    spriteBatch.Draw(basicTexture, new Rectangle((int)position.X, (int)currentPos.Y, (int)scaledTotalWidth, (int)scaledCellHeight), selectedRowColour);
+                if (_selectedRow.HasValue && _selectedRow.Value == i)
+                    spriteBatch.Draw(_basicTexture, new Rectangle((int)position.X, (int)currentPos.Y, (int)scaledTotalWidth, (int)scaledCellHeight), selectedRowColour);
 
                 string[] row = tableRows[i];
                 Vector2 cellPos = currentPos;
-                for (int j = 0; j < row.Length && j < colWidths.Count; j++)
+                for (int j = 0; j < row.Length && j < _colWidths.Count; j++)
                 {
                     string cellText = row[j];
                     Vector2 textSize = font.MeasureString(cellText) * uiScale;
@@ -201,17 +201,17 @@ namespace CompSci_NEA.GUI
                     spriteBatch.DrawString(font, cellText, textPos, rowColour, 0f, Vector2.Zero, uiScale, SpriteEffects.None, 0f);
 
                     //Red boarder around selected cell
-                    if (selectedRow.HasValue && selectedCol.HasValue &&
-                        selectedRow.Value == i && selectedCol.Value == j)
+                    if (_selectedRow.HasValue && _selectedCol.HasValue &&
+                        _selectedRow.Value == i && _selectedCol.Value == j)
                     {
-                        Rectangle cellRect = new Rectangle((int)cellPos.X, (int)cellPos.Y, (int)(colWidths[j] * uiScale), (int)scaledCellHeight);
+                        Rectangle cellRect = new Rectangle((int)cellPos.X, (int)cellPos.Y, (int)(_colWidths[j] * uiScale), (int)scaledCellHeight);
                         int borderThickness = 2;
-                        spriteBatch.Draw(basicTexture, new Rectangle(cellRect.X, cellRect.Y, cellRect.Width, borderThickness), selectedCellColour);
-                        spriteBatch.Draw(basicTexture, new Rectangle(cellRect.X, cellRect.Y + cellRect.Height - borderThickness, cellRect.Width, borderThickness), selectedCellColour);
-                        spriteBatch.Draw(basicTexture, new Rectangle(cellRect.X, cellRect.Y, borderThickness, cellRect.Height), selectedCellColour);
-                        spriteBatch.Draw(basicTexture, new Rectangle(cellRect.X + cellRect.Width - borderThickness, cellRect.Y, borderThickness, cellRect.Height), selectedCellColour);
+                        spriteBatch.Draw(_basicTexture, new Rectangle(cellRect.X, cellRect.Y, cellRect.Width, borderThickness), selectedCellColour);
+                        spriteBatch.Draw(_basicTexture, new Rectangle(cellRect.X, cellRect.Y + cellRect.Height - borderThickness, cellRect.Width, borderThickness), selectedCellColour);
+                        spriteBatch.Draw(_basicTexture, new Rectangle(cellRect.X, cellRect.Y, borderThickness, cellRect.Height), selectedCellColour);
+                        spriteBatch.Draw(_basicTexture, new Rectangle(cellRect.X + cellRect.Width - borderThickness, cellRect.Y, borderThickness, cellRect.Height), selectedCellColour);
                     }
-                    cellPos.X += (colWidths[j] * uiScale);
+                    cellPos.X += (_colWidths[j] * uiScale);
                 }
                 currentPos.Y += scaledCellHeight;
             }
@@ -229,37 +229,37 @@ namespace CompSci_NEA.GUI
 
         public void SetSelectedCellValue(string newValue)
         {
-            if (selectedRow.HasValue && selectedCol.HasValue)
+            if (_selectedRow.HasValue && _selectedCol.HasValue)
             {
                 //cannot change user id
-                if (selectedCol.Value == 0)
+                if (_selectedCol.Value == 0)
                     return;
 
-                if (selectedCol.Value == 1)
+                if (_selectedCol.Value == 1)
                 {
                     if (newValue.Length <= 3)
                         return;
                 }
-                else if (selectedCol.Value == 2)
+                else if (_selectedCol.Value == 2)
                 {
                     if (!(newValue == "0" || newValue == "1" ||
                           newValue.ToLower() == "true" || newValue.ToLower() == "false"))
                         return;
                     newValue = (newValue.ToLower() == "true" || newValue == "1") ? "1" : "0";
                 }
-                else if (selectedCol.Value == 3)
+                else if (_selectedCol.Value == 3)
                 {
                     if (!int.TryParse(newValue, out int coinValue))
                         return;
                 }
 
-                SetCellValue(selectedRow.Value, selectedCol.Value, newValue);
+                SetCellValue(_selectedRow.Value, _selectedCol.Value, newValue);
 
-                string userIdStr = tableRows[selectedRow.Value][0];
+                string userIdStr = tableRows[_selectedRow.Value][0];
                 if (int.TryParse(userIdStr, out int userId))
                 {
                     string columnName = "";
-                    switch (selectedCol.Value)
+                    switch (_selectedCol.Value)
                     {
                         case 1:
                             columnName = "username";
@@ -281,22 +281,22 @@ namespace CompSci_NEA.GUI
 
         public (int row, int col)? GetSelectedCell()
         {
-            if (selectedRow.HasValue && selectedCol.HasValue)
-                return (selectedRow.Value, selectedCol.Value);
+            if (_selectedRow.HasValue && _selectedCol.HasValue)
+                return (_selectedRow.Value, _selectedCol.Value);
             return null;
         }
 
         public string GetSelectedCellValue()
         {
-            if (!selectedRow.HasValue || !selectedCol.HasValue)
+            if (!_selectedRow.HasValue || !_selectedCol.HasValue)
                 return string.Empty;
-            return tableRows[selectedRow.Value][selectedCol.Value];
+            return tableRows[_selectedRow.Value][_selectedCol.Value];
         }
 
         public void ClearSelectedCell() //unselect cell
         {
-            selectedRow = null;
-            selectedCol = null;
+            _selectedRow = null;
+            _selectedCol = null;
         }
     }
 }

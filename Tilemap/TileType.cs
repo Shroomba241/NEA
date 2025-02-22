@@ -1,44 +1,64 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
-namespace CompSci_NEA.Tilemap
+public struct WeightedVariant
 {
-    public struct TileType
+    public Rectangle Region;
+    public float Weight;
+
+    public WeightedVariant(Rectangle region, float weight)
     {
-        public string Name;
-        public bool IsSolid;
-        public Rectangle TextureRegion;
-        public Color Color;
-        public List<Rectangle> VariationRegions;
+        Region = region;
+        Weight = weight;
+    }
+}
 
-        public TileType(string name, bool isSolid, Rectangle textureRegion, Color color)
+public struct TileType
+{
+    public string Name;
+    public bool IsSolid;
+    public Color Color;
+    public List<WeightedVariant> WeightedVariants;
+
+    public TileType(string name, bool isSolid, Color color, List<WeightedVariant> weightedVariants)
+    {
+        Name = name;
+        IsSolid = isSolid;
+        Color = color;
+        WeightedVariants = weightedVariants;
+    }
+
+    /// <summary>
+    /// Selects a texture region from the weighted variants using a deterministic hash based on world coordinates.
+    /// </summary>
+    public Rectangle GetEffectiveTextureRegion(int worldX, int worldY)
+    {
+        if (WeightedVariants == null || WeightedVariants.Count == 0)
+            return new Rectangle(0, 0, 0, 0);
+
+        // Compute total weight.
+        float totalWeight = 0f;
+        foreach (var variant in WeightedVariants)
         {
-            Name = name;
-            IsSolid = isSolid;
-            TextureRegion = textureRegion;
-            Color = color;
-            VariationRegions = null;
+            totalWeight += variant.Weight;
         }
 
-        public TileType(string name, bool isSolid, Rectangle textureRegion, Color color, List<Rectangle> variationRegions)
+        // Create a deterministic "random" value based on the world coordinates.
+        int hash = (worldX * 73856093) ^ (worldY * 19349663);
+        float normalized = (Math.Abs(hash) % 10000) / 10000f;
+        float threshold = normalized * totalWeight;
+
+        // Iterate over the weighted variants and pick one based on the threshold.
+        float cumulative = 0f;
+        foreach (var variant in WeightedVariants)
         {
-            Name = name;
-            IsSolid = isSolid;
-            TextureRegion = textureRegion;
-            Color = color;
-            VariationRegions = variationRegions;
+            cumulative += variant.Weight;
+            if (threshold < cumulative)
+                return variant.Region;
         }
 
-        public Rectangle GetEffectiveTextureRegion(int worldX, int worldY)
-        {
-            if (VariationRegions == null || VariationRegions.Count == 0)
-                return TextureRegion;
-
-            int hash = (worldX * 73856093) ^ (worldY * 19349663);
-            int index = Math.Abs(hash) % VariationRegions.Count;
-            return VariationRegions[index];
-        }
+        // Fallback: return the last variant if something unexpected occurs.
+        return WeightedVariants[WeightedVariants.Count - 1].Region;
     }
 }

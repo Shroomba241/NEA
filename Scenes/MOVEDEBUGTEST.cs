@@ -1,5 +1,6 @@
 ﻿using CompSci_NEA.Core;
 using CompSci_NEA.Entities;
+using CompSci_NEA.GUI;
 using CompSci_NEA.Tilemap;
 using CompSci_NEA.WorldGeneration;
 using Microsoft.Xna.Framework;
@@ -19,9 +20,10 @@ namespace CompSci_NEA.Scenes
         private Main game;
         private Player player;
         private Camera camera;
-        private Tilemap.TileMapVisual tileMapVisual;
-        private Tilemap.TileMapCollisions tileMapCollisions;
+        private Tilemap.VisualTileMap tileMapVisual;
+        private Tilemap.CollisionTileMap tileMapCollisions;
         private Tilemap.StructureTileMap structureTileMap;
+        private FoliageManager foliageManager;
         private GUI.SimplePerformance simplePerformance;
         private SpriteFont font;
         private Texture2D mapTexture;
@@ -32,6 +34,12 @@ namespace CompSci_NEA.Scenes
         public List<Rectangle> ExtraColliders { get; set; } = new List<Rectangle>();
 
         public static bool ShowCollisionDebug = false;
+
+        // Timer to track map regeneration
+        private float mapRegenTimer = 0f;
+        private const float REGEN_INTERVAL = 3f;
+
+        private HUDManager HUDManager;
 
         public MOVEDEBUGTEST(Main game)
         {
@@ -44,9 +52,11 @@ namespace CompSci_NEA.Scenes
             font = game.Content.Load<SpriteFont>("DefaultFont");
             simplePerformance = new GUI.SimplePerformance(font);
 
-            tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 24, 18, SEED);
-            tileMapCollisions = new Tilemap.TileMapCollisions(game.GraphicsDevice, 24, 18, SEED);
+            tileMapVisual = new Tilemap.VisualTileMap(game.GraphicsDevice, 24, 18, SEED);
+            tileMapCollisions = new Tilemap.CollisionTileMap(game.GraphicsDevice, 24, 18, SEED);
             structureTileMap = new Tilemap.StructureTileMap(game.GraphicsDevice, 24, 18, SEED);
+
+            foliageManager = new FoliageManager(game, tileMapVisual, SEED);
 
             tileMapCollisions.ExtraColliders.AddRange(structureTileMap.StoneBridgeColliders);
 
@@ -55,50 +65,68 @@ namespace CompSci_NEA.Scenes
 
             game.pauseCurrentSceneUpdateing = false;
 
-            highlightTexture = new Texture2D(game.GraphicsDevice, 1, 1); 
-            highlightTexture.SetData(new Color[] { Color.White }); 
+            highlightTexture = new Texture2D(game.GraphicsDevice, 1, 1);
+            highlightTexture.SetData(new Color[] { Color.White });
+            tileMapVisual.InitializeMapTexture(game.GraphicsDevice, 1024, 768, structureTileMap);
+            mapTexture = tileMapVisual.UpdateMapTexture(game.GraphicsDevice);
 
-            mapTexture = tileMapVisual.GenerateMapTexture(game.GraphicsDevice, 1024, 768, structureTileMap);
-
-
+            HUDManager = new HUDManager();
+            HUDManager.LoadContent();
         }
 
         public override void Update(GameTime gameTime)
         {
             KeyboardState ks = Keyboard.GetState();
-
             showMap = ks.IsKeyDown(Keys.Tab);
 
-            if (ks.IsKeyDown(Keys.F5))
+            foliageManager.UpdateMinigames(player);
+
+            // Increment the timer and regenerate the map every 5 seconds.
+            mapRegenTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (mapRegenTimer >= REGEN_INTERVAL)
             {
-                SEED = new Random().Next();
-                NoiseGenerator.SetSeed(SEED);
-
-                tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 24, 18, SEED);
-                tileMapCollisions = new Tilemap.TileMapCollisions(game.GraphicsDevice, 24, 18, SEED);
-                structureTileMap = new Tilemap.StructureTileMap(game.GraphicsDevice, 24, 18, SEED);
-
-                tileMapCollisions.ExtraColliders.Clear();
-                tileMapCollisions.ExtraColliders.AddRange(structureTileMap.StoneBridgeColliders);
-
-                mapTexture = tileMapVisual.GenerateMapTexture(game.GraphicsDevice, 1024, 768, structureTileMap);
+                mapRegenTimer = 0f;
+                mapTexture = tileMapVisual.UpdateMapTexture(game.GraphicsDevice);
             }
+
+            /*if (!game.InMiniGame && ks.IsKeyDown(Keys.E))
+            {
+                game.StartMiniGame(SubGameState.Tetris);
+                game.InMiniGame = true;
+            }*/
 
             simplePerformance.Update(gameTime);
             player.Update(tileMapCollisions);
             camera.Update(player.Position);
         }
 
+        /*private void RegenerateMap()
+        {
+            SEED = new Random().Next();
+            NoiseGenerator.SetSeed(SEED);
+
+            tileMapVisual = new Tilemap.VisualTileMap(game.GraphicsDevice, 24, 18, SEED);
+            tileMapCollisions = new Tilemap.CollisionTileMap(game.GraphicsDevice, 24, 18, SEED);
+            structureTileMap = new Tilemap.StructureTileMap(game.GraphicsDevice, 24, 18, SEED);
+
+            tileMapCollisions.ExtraColliders.Clear();
+            tileMapCollisions.ExtraColliders.AddRange(structureTileMap.StoneBridgeColliders);
+
+            mapTexture = tileMapVisual.GenerateMapTexture(game.GraphicsDevice, 1024, 768, structureTileMap);
+        }*/
 
         public override void Draw(SpriteBatch spriteBatch)
         {
+            // Clear the screen.
             game.GraphicsDevice.Clear(Color.DimGray);
 
-            //spiritebatch affected by zoom
+            // Draw world elements with the camera transform.
             spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: camera.Transform);
             tileMapVisual.Draw(spriteBatch, player);
             structureTileMap.DrawBackgroundLayer(spriteBatch, player);
+            foliageManager.DrawBehind(spriteBatch, player);
             player.Draw(spriteBatch);
+            foliageManager.DrawInFront(spriteBatch, player);
             structureTileMap.DrawForegroundLayer(spriteBatch, player);
             if (ShowCollisionDebug)
             {
@@ -106,28 +134,36 @@ namespace CompSci_NEA.Scenes
             }
             spriteBatch.End();
 
-            //spritebatch not affected by zoom (HUD, map, etc)
+            // Draw HUD elements in screen space (without the camera transform).
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            HUDManager.Draw(spriteBatch);
+
+            // Optionally draw other HUD items (like the map).
             if (showMap && mapTexture != null)
             {
                 spriteBatch.Draw(mapTexture, new Vector2(448, 24), Color.White);
-                Point playerChunk = tileMapVisual.GetChunkCoordinates((int)player.Position.X, (int)player.Position.Y); 
+                Point playerChunk = tileMapVisual.GetChunkCoordinates((int)player.Position.X, (int)player.Position.Y);
                 Vector2 highlightPosition = new Vector2(448, 24) +
                                              new Vector2(playerChunk.X * chunkWidth, playerChunk.Y * chunkHeight);
                 spriteBatch.Draw(highlightTexture, highlightPosition, null, Color.White * 0.5f,
                                  0f, Vector2.Zero, new Vector2(chunkWidth, chunkHeight), SpriteEffects.None, 0f);
             }
 
+            // Draw performance metrics.
             simplePerformance.Draw(spriteBatch);
             spriteBatch.End();
+        }
+
+        public void UpdateShmacks(int reward)
+        {
+            HUDManager.IncreaseShmackAmount(reward);
+
+            Console.WriteLine($"updated by {reward}");
         }
 
         public override void Shutdown()
         {
             throw new NotImplementedException();
         }
-
-
     }
 }
-

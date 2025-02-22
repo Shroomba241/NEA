@@ -268,14 +268,14 @@ namespace CompSci_NEA.Scenes
             }
 
             bool isAdmin = dbFunctions.IsUserAdmin(username);
-            game.LoggedInUsername = username;
+            Main.LoggedInUsername = username;
             if (isAdmin)
             {
                 game.ChangeState(GameState.AdminView); // Load the AdminView scene
             }
             else
             {
-                game.ChangeState(GameState.DEBUG); // Regular view scene
+                game.ChangeState(GameState.MainMenu); // Regular view scene
             }
             Console.WriteLine("Login successful!!");
         }

@@ -151,7 +151,7 @@ namespace CompSci_NEA.WorldGeneration
         }
 
 
-        float GetBaseTemperature(int x, int y, int width, int height, float[,] matrix = null, float verticalExp = 1f)
+        float GetBaseTemperature(int x, int y, int width, int height, float[,] matrix = null, float verticalExp = 1f) //todo: see if i can make these things better
         {
             if (matrix == null)
             {
@@ -232,7 +232,7 @@ namespace CompSci_NEA.WorldGeneration
 
         public byte[,] GetBiomeMap() => biomeMap;
 
-        public Texture2D GenerateTemperatureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
+        public Texture2D GenerateTemperatureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight) //redundant in final logic
         {
             Texture2D texture = new Texture2D(graphicsDevice, textureWidth, textureHeight);
             Color[] textureData = new Color[textureWidth * textureHeight];
@@ -283,7 +283,7 @@ namespace CompSci_NEA.WorldGeneration
             return texture;
         }
 
-        public Texture2D GenerateMoistureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
+        public Texture2D GenerateMoistureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight) //redundant in final logic
         {
             Texture2D texture = new Texture2D(graphicsDevice, textureWidth, textureHeight);
             Color[] textureData = new Color[textureWidth * textureHeight];

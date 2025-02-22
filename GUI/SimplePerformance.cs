@@ -10,9 +10,9 @@ namespace CompSci_NEA.GUI
 {
     public class SimplePerformance //to work change values in main
     {
-        private float elapsedTime = 0f;
-        private int frameCount = 0;
-        private int fps = 0;
+        private float _elapsedTime = 0f;
+        private int _frameCount = 0;
+        private int _fps = 0;
         private Text fpsText;
 
         public SimplePerformance(SpriteFont font)
@@ -22,15 +22,15 @@ namespace CompSci_NEA.GUI
 
         public void Update(GameTime gameTime)
         {
-            elapsedTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            frameCount++;
+            _elapsedTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _frameCount++;
 
-            if (elapsedTime >= 1.0f)
+            if (_elapsedTime >= 1.0f)
             {
-                fps = frameCount;
-                frameCount = 0;
-                elapsedTime = 0f;
-                fpsText.UpdateContent($"FPS: {fps}");
+                _fps = _frameCount;
+                _frameCount = 0;
+                _elapsedTime = 0f;
+                fpsText.UpdateContent($"FPS: {_fps}");
             }
         }
 

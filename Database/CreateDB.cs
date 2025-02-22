@@ -43,26 +43,45 @@ namespace CompSci_NEA.Database
                     last_played TEXT DEFAULT CURRENT_TIMESTAMP,
                     location_x INTEGER DEFAULT 0,
                     location_y INTEGER DEFAULT 0,
+                    coins INTEGER DEFAULT 100,
                     PRIMARY KEY (user_id, world_id),
                     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-                    FOREIGN KEY (world_id) REFERENCES Worlds(world_id) ON DELETE CASCADE
+                    FOREIGN KEY (world_id) REFERENCES Worlds(world_id)
                 );";
+
+                string createTetrisSessionsTable = @"
+                    CREATE TABLE IF NOT EXISTS TetrisSessions (
+                        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        username TEXT NOT NULL,
+                        score INTEGER NOT NULL,
+                        session_time TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+                    );
+                ";
+
 
                 using (SQLiteCommand cmd = new SQLiteCommand(createUserTable, conn))
                 {
                     cmd.ExecuteNonQuery();
-                    Console.WriteLine("Users table created");
+                    Console.WriteLine("Users table exists");
                 }
 
                 using (SQLiteCommand cmd = new SQLiteCommand(createWorldsTable, conn))
                 {
                     cmd.ExecuteNonQuery();
-                    Console.WriteLine("Worlds table created");
+                    Console.WriteLine("Worlds table exists");
                 }
                 using (SQLiteCommand cmd = new SQLiteCommand(createUserWorldSaveTable, conn))
                 {
                     cmd.ExecuteNonQuery();
-                    Console.WriteLine("User World Save table created");
+                    Console.WriteLine("User World Save table exists");
+                }
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTetrisSessionsTable, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                    Console.WriteLine("Tetris Sessions table exists");
                 }
             }
         }

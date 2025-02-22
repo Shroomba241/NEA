@@ -15,7 +15,7 @@ namespace CompSci_NEA.Database
 
         public DbFunctions()
         {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
+            using (SQLiteConnection conn = OpenConnection())
             {
                 //AddTestEntry(conn);
                 EnsureUser1IsAdmin();
@@ -25,7 +25,7 @@ namespace CompSci_NEA.Database
             Console.WriteLine("Done!");
         }
 
-        private SQLiteConnection CreateAndOpenConnection()
+        private SQLiteConnection OpenConnection()
         {
             var connection = new SQLiteConnection(ConnectionString);
             connection.Open();
@@ -48,16 +48,16 @@ namespace CompSci_NEA.Database
                     }
                 }
             }
-            Console.WriteLine("hashpass after con");
+            //Console.WriteLine("hashpass after con");
             if (string.IsNullOrEmpty(salt))
                 return "0";
-            Console.WriteLine(salt);
+            //Console.WriteLine(salt);
             return Hasher(password + salt);
         }
 
         public bool AuthenticateUser(string username, string password)
         {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
+            using (SQLiteConnection conn = OpenConnection())
             {
                 string passwordHash = ComputeHashPass(username, password, conn);
                 string query = "SELECT COUNT(*) FROM Users WHERE username = @username AND password_hash = @passwordHash";
@@ -75,7 +75,7 @@ namespace CompSci_NEA.Database
 
         public bool IsUserAdmin(string username)
         {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
+            using (SQLiteConnection conn = OpenConnection())
             {
                 string query = "SELECT admin FROM Users WHERE username = @username";
                 using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
@@ -96,7 +96,7 @@ namespace CompSci_NEA.Database
         {
             try
             {
-                using (SQLiteConnection conn = CreateAndOpenConnection())
+                using (SQLiteConnection conn = OpenConnection())
                 {
                     string checkQuery = "SELECT COUNT(*) FROM Users WHERE username = @username";
                     using (SQLiteCommand cmd = new SQLiteCommand(checkQuery, conn))
@@ -105,7 +105,7 @@ namespace CompSci_NEA.Database
                         int userCount = Convert.ToInt32(cmd.ExecuteScalar());
                         if (userCount > 0)
                         {
-                            return false; // username isn't unique
+                            return false; //username isn't unique
                         }
                     }
 
@@ -122,31 +122,38 @@ namespace CompSci_NEA.Database
 
         public void AddUser(string username, string password)
         {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
+            try
             {
-                var x = CreateHashPass(username, password, conn);
-                string passwordHash = x[0];
-                string salt = x[1];
-                string insertNewUser = @"
+                using (SQLiteConnection conn = OpenConnection())
+                {
+                    var x = CreateHashPass(username, password, conn);
+                    string passwordHash = x[0];
+                    string salt = x[1];
+                    string insertNewUser = @"
                     INSERT INTO Users (username, password_hash, salt) 
                     VALUES (@username, @passwordHash, @salt)
                 ";
 
-                using (SQLiteCommand cmd = new SQLiteCommand(insertNewUser, conn))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
-                    cmd.Parameters.AddWithValue("@salt", salt);
+                    using (SQLiteCommand cmd = new SQLiteCommand(insertNewUser, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@username", username);
+                        cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
+                        cmd.Parameters.AddWithValue("@salt", salt);
 
-                    cmd.ExecuteNonQuery();
-                    DisplayAllUsers(conn);
+                        cmd.ExecuteNonQuery();
+                        DisplayAllUsers(conn);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in Adduser" + ex.Message);
             }
         }
 
         private void EnsureUser1IsAdmin()
         {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
+            using (SQLiteConnection conn = OpenConnection())
             {
                 string updateQuery = "UPDATE Users SET admin = 1 WHERE user_id = 1";
                 using (SQLiteCommand cmd = new SQLiteCommand(updateQuery, conn))
@@ -156,8 +163,66 @@ namespace CompSci_NEA.Database
             }
         }
 
+        public void AddTetrisEntry(int userId, string username, int score)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = @"
+                    INSERT INTO TetrisSessions (user_id, username, score)
+                    VALUES (@userId, @username, @score);
+                ";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@score", score);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public List<string[]> GetAllUserData()
+        {
+            List<string[]> data = new List<string[]>();
+
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "SELECT user_id, username, admin, coins FROM Users";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string userId = reader["user_id"].ToString();
+                        string username = reader["username"].ToString();
+                        string admin = reader["admin"].ToString();
+                        string coins = reader["coins"].ToString();
+                        data.Add(new string[] { userId, username, admin, coins });
+                    }
+                }
+            }
+            //Console.WriteLine(string.Join(" | ", data.Select(row => string.Join(", ", row))));
+
+            return data;
+        }
+
+        public void UpdateUserData(int userId, string columnName, string newValue)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = $"UPDATE Users SET {columnName} = @newValue WHERE user_id = @userId";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@newValue", newValue);
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         //-------------------------------------------------------------------------------------------
-        static void AddTestEntry(SQLiteConnection conn) // DEBUG
+        static void AddTestEntry(SQLiteConnection conn) //DEBUG
         {
             string insertTestUser = @"
                 INSERT INTO Users (username, password_hash, admin, coins) 
@@ -189,7 +254,7 @@ namespace CompSci_NEA.Database
             }
         }
 
-        static void DisplayAllUsers(SQLiteConnection conn) // DEBUG
+        static void DisplayAllUsers(SQLiteConnection conn) //DEBUG
         {
             string query = @"
                 SELECT 
@@ -223,9 +288,10 @@ namespace CompSci_NEA.Database
         }
         //--------------------------------------------------------------------------------------------------
 
+        //password things start here
         public string HashPass(string username, string password)
         {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
+            using (SQLiteConnection conn = OpenConnection())
             {
                 return ComputeHashPass(username, password, conn);
             }
@@ -251,99 +317,60 @@ namespace CompSci_NEA.Database
         public string Hasher(string input)
         {
             Console.WriteLine(input);
-            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-            int middle = inputBytes.Length / 2;
-            byte[] p1 = new byte[middle];
-            byte[] p2 = new byte[inputBytes.Length - middle];
-            Array.Copy(inputBytes, 0, p1, 0, middle);
-            Array.Copy(inputBytes, middle, p2, 0, p2.Length);
+
+            byte[] buf = Encoding.UTF8.GetBytes(input);
+            // Split buf into p1 and p2
+            int mid = buf.Length / 2;
+            byte[] p1 = new byte[mid];
+            byte[] p2 = new byte[buf.Length - mid];
+            Array.Copy(buf, 0, p1, 0, mid);
+            Array.Copy(buf, mid, p2, 0, p2.Length);
+            //xor p1 and p2, but shift just p2
             for (int i = 0; i < p1.Length; i++)
             {
                 p1[i] ^= p2[i];
                 p2[i] >>= 1;
             }
+            //arithmetic to scramble the data but determanistic, so should be difficult to reverse
             for (int i = 0; i < p1.Length; i++)
             {
                 p1[i] = (byte)(p1[i] * 6653 * i);
                 p2[i] = (byte)(9091 - p2[i] * 37 * i * 2);
             }
-            List<byte> interleaved = new List<byte>();
-            int minLength = Math.Min(p1.Length, p2.Length);
-
-            for (int i = 0; i < minLength; i++)
+            //interleave p1 and p2 into mix. alternate bytes from each
+            List<byte> mix = new List<byte>();
+            int min = Math.Min(p1.Length, p2.Length);
+            for (int i = 0; i < min; i++)
             {
-                interleaved.Add(p1[i]);
-                interleaved.Add(p2[i]);
+                mix.Add(p1[i]);
+                mix.Add(p2[i]);
             }
+            if (p1.Length > min)
+                mix.AddRange(p1.Skip(min));
+            if (p2.Length > min)
+                mix.AddRange(p2.Skip(min));
+            byte[] mixArr = mix.ToArray();
+            //split mixArr into two segments to prep for following xor
+            //seg1 is the first 48 bytes; seg2 is built from the remaining bytes which are repeated
+            byte[] seg1 = mixArr.Take(48).ToArray();
+            byte[] rem = mixArr.Skip(48).ToArray();
+            List<byte> seg2List = new List<byte>(rem);
+            while (seg2List.Count < 48)
+                seg2List.AddRange(rem);
+            byte[] seg2 = seg2List.Take(48).ToArray();
 
-            if (p1.Length > minLength)
-                interleaved.AddRange(p1.Skip(minLength));
-
-            if (p2.Length > minLength)
-                interleaved.AddRange(p2.Skip(minLength));
-
-            byte[] interleavedArray = interleaved.ToArray();
-            byte[] part1 = interleavedArray.Take(48).ToArray();
-            byte[] remaining = interleavedArray.Skip(48).ToArray();
-
-            List<byte> part2List = new List<byte>(remaining);
-            while (part2List.Count < 48)
-            {
-                part2List.AddRange(remaining);
-            }
-            byte[] part2 = part2List.Take(48).ToArray();
-
-            byte[] xorResult = new byte[36];
+            //xor first against second into a 36  byte result
+            byte[] hash = new byte[36];
             for (int i = 0; i < 36; i++)
             {
-                xorResult[i] = (byte)(part1[i] ^ part2[i]);
+                hash[i] = (byte)(seg1[i] ^ seg2[i]);
             }
+            //convert byte hash to b64 to be returned
+            string b64 = Convert.ToBase64String(hash);
+            Console.WriteLine(b64);
+            Console.WriteLine(b64.Length);
 
-            string base64String = Convert.ToBase64String(xorResult.ToArray());
-            Console.WriteLine(base64String);
-            Console.WriteLine(base64String.Length);
-
-            return base64String;
-        }
-
-
-        public List<string[]> GetAllUserData()
-        {
-            List<string[]> data = new List<string[]>();
-
-            using (SQLiteConnection conn = CreateAndOpenConnection())
-            {
-                string query = "SELECT user_id, username, admin, coins FROM Users";
-                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string userId = reader["user_id"].ToString();
-                        string username = reader["username"].ToString();
-                        string admin = reader["admin"].ToString();
-                        string coins = reader["coins"].ToString();
-                        data.Add(new string[] { userId, username, admin, coins });
-                    }
-                }
-            }
-            //Console.WriteLine(string.Join(" | ", data.Select(row => string.Join(", ", row))));
-
-            return data;
-        }
-
-        public void UpdateUserData(int userId, string columnName, string newValue)
-        {
-            using (SQLiteConnection conn = CreateAndOpenConnection())
-            {
-                string query = $"UPDATE Users SET {columnName} = @newValue WHERE user_id = @userId";
-                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@newValue", newValue);
-                    cmd.Parameters.AddWithValue("@userId", userId);
-                    cmd.ExecuteNonQuery();
-                }
-            }
+            return b64;
         }
     }
 }

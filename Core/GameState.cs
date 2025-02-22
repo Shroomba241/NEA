@@ -10,7 +10,13 @@ namespace CompSci_NEA.Core
     {
         Login,
         AdminView,
+        MainMenu,
         DEBUG,
         ZoneATest
+    }
+
+    public enum SubGameState
+    {
+        Tetris
     }
 }

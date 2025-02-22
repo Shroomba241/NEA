@@ -3,10 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static CompSci_NEA.Tilemap.TileMapVisual;
 using CompSci_NEA.WorldGeneration.Structures;
 
 namespace CompSci_NEA.Tilemap
@@ -47,10 +43,14 @@ namespace CompSci_NEA.Tilemap
                             for (int x = 0; x < chunkSize; x++)
                             {
                                 byte tileID = chunk[y, x];
-                                if (!tileTypes.ContainsKey(tileID)) continue;
+                                if (!tileTypes.ContainsKey(tileID))
+                                    continue;
+
                                 TileType tileType = tileTypes[tileID];
                                 Vector2 position = new Vector2((currentChunkX * chunkSize + x) * 48, (currentChunkY * chunkSize + y) * 48);
-                                spriteBatch.Draw(tileAtlas, position, tileType.TextureRegion, Color.White, 0f, Vector2.Zero, 3.0f, SpriteEffects.None, 0f);
+                                // Use the new GetEffectiveTextureRegion call.
+                                Rectangle sourceRect = tileType.GetEffectiveTextureRegion((int)position.X, (int)position.Y);
+                                spriteBatch.Draw(tileAtlas, position, sourceRect, tileType.Color, 0f, Vector2.Zero, 3.0f, SpriteEffects.None, 0f);
                             }
                         }
                     }
@@ -81,5 +81,3 @@ namespace CompSci_NEA.Tilemap
         }
     }
 }
-
-

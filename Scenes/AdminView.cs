@@ -34,12 +34,12 @@ namespace CompSci_NEA.Scenes
             loaded = true;
             font = game.Content.Load<SpriteFont>("DefaultFont");
 
-            string adminName = game.LoggedInUsername ?? "Admin";
+            string adminName = Main.LoggedInUsername ?? "Admin";
             titleText = new GUI.Text(font, $"Admin Panel - {adminName}", new Vector2(100, 50), Color.White, 3.0f);
 
             continueButton = new GUI.Button(game.GraphicsDevice, font, "Continue", new Vector2(520, 900), 420, 90);
             logoutButton = new GUI.Button(game.GraphicsDevice, font, "Logout", new Vector2(100, 900), 400, 90);
-            continueButton.OnClickAction = () => game.ChangeState(GameState.DEBUG);
+            continueButton.OnClickAction = () => game.ChangeState(GameState.MainMenu);
             logoutButton.OnClickAction = () => game.ChangeState(GameState.Login);
 
             Database.DbFunctions dbFunctions = new Database.DbFunctions();
@@ -49,7 +49,7 @@ namespace CompSci_NEA.Scenes
 
             //start offscreen and used in editing data
             editInputBox = new GUI.InputBox(game.GraphicsDevice, font, new Vector2(-500, -500), 800, 90, false, 15);
-            toggleButton = new GUI.Button(game.GraphicsDevice, font, "Toggle", new Vector2(-500, -500), 100, 40, 1.0f, new Vector2(10, 10));
+            toggleButton = new GUI.Button(game.GraphicsDevice, font, "Toggle", new Vector2(-500, -500), 400, 90);
 
             renderTarget = new RenderTarget2D(game.GraphicsDevice,
                 game.GraphicsDevice.PresentationParameters.BackBufferWidth,
@@ -70,7 +70,7 @@ namespace CompSci_NEA.Scenes
                 editInputBox.Update(gameTime);
                 toggleButton.Update();
 
-                string adminName = game.LoggedInUsername ?? "Admin";
+                string adminName = Main.LoggedInUsername ?? "Admin";
                 titleText.UpdateContent($"Admin Panel - {adminName}");
 
                 userDataTable.IgnoreMouseClicks = editModeActive;

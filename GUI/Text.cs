@@ -13,21 +13,21 @@ namespace CompSci_NEA.GUI
         private SpriteFont font;
         private string content;
         public Vector2 position;
-        private Color color;
+        private Color colour;
         private float scale;
 
-        public Text(SpriteFont font, string content, Vector2 position, Color color, float scale = 1.0f)
+        public Text(SpriteFont font, string content, Vector2 position, Color colour, float scale = 1.0f)
         {
             this.font = font;
             this.content = content;
             this.position = position;
-            this.color = color;
+            this.colour = colour;
             this.scale = scale;
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawString(font, content, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, content, position, colour, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
         }
 
         public void UpdateContent(string newContent)

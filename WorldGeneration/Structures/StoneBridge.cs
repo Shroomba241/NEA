@@ -31,13 +31,13 @@ namespace CompSci_NEA.WorldGeneration.Structures
         private Random random;
 
         private static readonly int[] possibleX = { 0, 16, 32, 48, 64, 80, 96, 112 };
-        private static readonly int[] possibleY = { 160, 176 }; 
+        private static readonly int[] possibleY = { 160, 176 };
         private static readonly int[] railingX = { 16, 32, 48, 64, 80, 96 };
-        private static readonly int[] railingY = { 144 }; 
+        private static readonly int[] railingY = { 144 };
         private static readonly int[] railingBottomX = { 16, 32, 48, 64, 80, 96 };
-        private static readonly int[] railingBottomY = { 208 }; 
+        private static readonly int[] railingBottomY = { 208 };
         private static readonly int[] pillarX = { 0, 112 };
-        private static readonly int[] pillarY = { 144 }; 
+        private static readonly int[] pillarY = { 144 };
 
         private const int tileSpacing = 48;
         private const int substractOffset = 10;
@@ -79,25 +79,29 @@ namespace CompSci_NEA.WorldGeneration.Structures
                 int randRailingX = railingX[random.Next(railingX.Length)];
                 int randRailingY = railingY[random.Next(railingY.Length)];
                 topRailingTiles.Add(new StructureTileType(
-                    new TileType("RailingTop", false, new Rectangle(randRailingX, randRailingY, tileSize, tileSize), Color.White),
+                    new TileType("RailingTop", false, Color.White,
+                        new List<WeightedVariant> { new WeightedVariant(new Rectangle(randRailingX, randRailingY, tileSize, tileSize), 1) }),
                     railingTopPosition));
 
                 int randPossibleX1 = possibleX[random.Next(possibleX.Length)];
                 int randPossibleY1 = possibleY[random.Next(possibleY.Length)];
                 topBaseTiles.Add(new StructureTileType(
-                    new TileType("Base", true, new Rectangle(randPossibleX1, randPossibleY1, tileSize, tileSize), Color.White),
+                    new TileType("Base", true, Color.White,
+                        new List<WeightedVariant> { new WeightedVariant(new Rectangle(randPossibleX1, randPossibleY1, tileSize, tileSize), 1) }),
                     baseTopPosition));
 
                 int randPossibleX2 = possibleX[random.Next(possibleX.Length)];
                 int randPossibleY2 = possibleY[random.Next(possibleY.Length)];
                 bottomBaseTiles.Add(new StructureTileType(
-                    new TileType("Base", true, new Rectangle(randPossibleX2, randPossibleY2, tileSize, tileSize), Color.White),
+                    new TileType("Base", true, Color.White,
+                        new List<WeightedVariant> { new WeightedVariant(new Rectangle(randPossibleX2, randPossibleY2, tileSize, tileSize), 1) }),
                     baseBottomPosition));
 
                 int randRailingBottomX = railingBottomX[random.Next(railingBottomX.Length)];
                 int randRailingBottomY = railingBottomY[random.Next(railingBottomY.Length)];
                 bottomRailingTiles.Add(new StructureTileType(
-                    new TileType("RailingBottom", false, new Rectangle(randRailingBottomX, randRailingBottomY, tileSize, tileSize), Color.White),
+                    new TileType("RailingBottom", false, Color.White,
+                        new List<WeightedVariant> { new WeightedVariant(new Rectangle(randRailingBottomX, randRailingBottomY, tileSize, tileSize), 1) }),
                     railingBottomPosition));
 
                 if (i % 8 == 0)
@@ -107,19 +111,24 @@ namespace CompSci_NEA.WorldGeneration.Structures
                     Vector2 pillarTopTopLeft = new Vector2(currentX, railingTopY - tileSpacing);
                     Vector2 pillarTopTopRight = new Vector2(nextX, railingTopY - tileSpacing);
                     topPillarTiles.Add(new StructureTileType(
-                        new TileType("Pillar", true, new Rectangle(pillarX[0], pillarY[0], tileSize, tileSize), Color.White),
+                        new TileType("Pillar", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[0], pillarY[0], tileSize, tileSize), 1) }),
                         pillarTopBaseRight));
                     topPillarTiles.Add(new StructureTileType(
-                        new TileType("Pillar", true, new Rectangle(pillarX[1], pillarY[0], tileSize, tileSize), Color.White),
+                        new TileType("Pillar", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[1], pillarY[0], tileSize, tileSize), 1) }),
                         pillarTopBaseLeft));
                     topPillarTiles.Add(new StructureTileType(
-                        new TileType("PillarTop", true, new Rectangle(pillarX[0], pillarY[0] - 16, tileSize, tileSize), Color.White),
+                        new TileType("PillarTop", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[0], pillarY[0] - 16, tileSize, tileSize), 1) }),
                         pillarTopTopRight));
                     topPillarTiles.Add(new StructureTileType(
-                        new TileType("PillarTop", true, new Rectangle(pillarX[1], pillarY[0] - 16, tileSize, tileSize), Color.White),
+                        new TileType("PillarTop", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[1], pillarY[0] - 16, tileSize, tileSize), 1) }),
                         pillarTopTopLeft));
                     supportTiles.Add(new StructureTileType(
-                        new TileType("BridgeSupport", true, supportTextureRegion, Color.White),
+                        new TileType("BridgeSupport", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(supportTextureRegion, 1) }),
                         supportPosition));
 
                     int pillarBottomUpperY = railingBottomYPos;
@@ -129,16 +138,20 @@ namespace CompSci_NEA.WorldGeneration.Structures
                     Vector2 pillarBottomLowerLeft = new Vector2(currentX, pillarBottomLowerY);
                     Vector2 pillarBottomLowerRight = new Vector2(nextX, pillarBottomLowerY);
                     bottomPillarTiles.Add(new StructureTileType(
-                        new TileType("Pillar", true, new Rectangle(pillarX[0], railingBottomY[0], tileSize, tileSize), Color.White),
+                        new TileType("Pillar", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[0], pillarY[0], tileSize, tileSize), 1) }),
                         pillarBottomBaseRight));
                     bottomPillarTiles.Add(new StructureTileType(
-                        new TileType("Pillar", true, new Rectangle(pillarX[1], railingBottomY[0], tileSize, tileSize), Color.White),
+                        new TileType("Pillar", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[1], pillarY[0], tileSize, tileSize), 1) }),
                         pillarBottomBaseLeft));
                     bottomPillarTiles.Add(new StructureTileType(
-                        new TileType("PillarBottom", true, new Rectangle(pillarX[0], railingBottomY[0] - 16, tileSize, tileSize), Color.White),
+                        new TileType("PillarBottom", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[0], pillarY[0] - 16, tileSize, tileSize), 1) }),
                         pillarBottomLowerRight));
                     bottomPillarTiles.Add(new StructureTileType(
-                        new TileType("PillarBottom", true, new Rectangle(pillarX[1], railingBottomY[0] - 16, tileSize, tileSize), Color.White),
+                        new TileType("PillarBottom", true, Color.White,
+                            new List<WeightedVariant> { new WeightedVariant(new Rectangle(pillarX[1], pillarY[0] - 16, tileSize, tileSize), 1) }),
                         pillarBottomLowerLeft));
                 }
             }
@@ -150,56 +163,76 @@ namespace CompSci_NEA.WorldGeneration.Structures
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
             foreach (var tile in topBaseTiles)
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
             foreach (var tile in bottomBaseTiles)
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
             foreach (var tile in topRailingTiles)
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
             foreach (var tile in topPillarTiles)
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
         }
 
         public void DrawForegroundInRect(SpriteBatch spriteBatch, Rectangle rect)
         {
-            
             foreach (var tile in bottomRailingTiles)
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
             foreach (var tile in bottomPillarTiles)
             {
                 Rectangle tileRect = new Rectangle((int)tile.position.X, (int)tile.position.Y, 48, 48);
                 if (tileRect.Intersects(rect))
-                    spriteBatch.Draw(tileAtlas, tile.position, tile.tileType.TextureRegion, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                {
+                    Rectangle region = tile.tileType.GetEffectiveTextureRegion((int)tile.position.X, (int)tile.position.Y);
+                    spriteBatch.Draw(tileAtlas, tile.position, region, tile.tileType.Color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                }
             }
         }
 
         public List<Rectangle> GetBottomRailingColliders()
         {
             List<Rectangle> colliders = new List<Rectangle>();
-            int colliderWidth = (int)(48);
-            int colliderHeight = (int)(48);
+            int colliderWidth = 48;
+            int colliderHeight = 48;
 
             foreach (var tile in bottomRailingTiles)
             {

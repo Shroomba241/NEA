@@ -1,4 +1,4 @@
-﻿using CompSci_NEA.Core;
+﻿/*using CompSci_NEA.Core;
 using CompSci_NEA.Entities;
 using CompSci_NEA.Tilemap;
 using CompSci_NEA.WorldGeneration;
@@ -19,8 +19,8 @@ namespace CompSci_NEA.Scenes
         private Main game;
         private Player player;
         private Camera camera;
-        private Tilemap.TileMapVisual tileMapVisual;
-        private Tilemap.TileMapCollisions tileMapCollisions;
+        private Tilemap.VisualTileMap tileMapVisual;
+        private Tilemap.CollisionTileMap tileMapCollisions;
         private Tilemap.StructureTileMap structureTileMap;
         private GUI.SimplePerformance simplePerformance;
         private SpriteFont font;
@@ -46,7 +46,7 @@ namespace CompSci_NEA.Scenes
             font = game.Content.Load<SpriteFont>("DefaultFont");
             simplePerformance = new GUI.SimplePerformance(font);
 
-            tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 12, 9, SEED);
+            tileMapVisual = new Tilemap.VisualTileMap(game.GraphicsDevice, 12, 9, SEED);
 
             
             player = new Player(game.GraphicsDevice, new Vector2(150 * 48, 384 * 48));
@@ -74,7 +74,7 @@ namespace CompSci_NEA.Scenes
                 SEED = new Random().Next();
                 NoiseGenerator.SetSeed(SEED);
 
-                tileMapVisual = new Tilemap.TileMapVisual(game.GraphicsDevice, 12, 9, SEED);
+                tileMapVisual = new Tilemap.VisualTileMap(game.GraphicsDevice, 12, 9, SEED);
 
                 mapTexture = tileMapVisual.GenerateMapTexture(game.GraphicsDevice, 512, 384, structureTileMap);
                 tempMapTexture = tileMapVisual.GenerateTemperatureTexture(game.GraphicsDevice, 384, 384);
@@ -97,10 +97,10 @@ namespace CompSci_NEA.Scenes
             //structureTileMap.DrawBackgroundLayer(spriteBatch, player);
             player.Draw(spriteBatch);
             //structureTileMap.DrawForegroundLayer(spriteBatch, player);
-            /*if (ShowCollisionDebug)
+            *//*if (ShowCollisionDebug)
             {
                 tileMapCollisions.DrawDebug(spriteBatch, TextureManager.DEBUG_Collider, player.Position);
-            }*/
+            }*//*
             spriteBatch.End();
 
             //spritebatch not affected by zoom (HUD, map, etc)
@@ -130,3 +130,4 @@ namespace CompSci_NEA.Scenes
     }
 }
 
+*/

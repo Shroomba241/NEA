@@ -13,23 +13,23 @@ namespace CompSci_NEA.GUI
     {
         private SpriteFont font;
         private string text;
-        private Text inputText;
+        private Text _inputText;
         private Vector2 position;
         private Rectangle bounds;
-        private Color color;
+        private Color colour;
         public bool isActive;
         private Texture2D backgroundTexture;
 
-        private bool wasMousePressed = false;
+        private bool _wasMousePressed = false;
         private bool obscured;
         private int limit;
 
         public Action OnClickAction;
 
-        private double keyRepeatTimer = 0;
-        private const double InitialKeyDelay = 400; 
-        private const double KeyRepeatRate = 50;   
-        private Keys lastKeyPressed = Keys.None;
+        private double _keyRepeatTimer = 0;
+        private const double _initialKeyDelay = 400; 
+        private const double _keyRepeatRate = 50;   
+        private Keys _lastKeyPressed = Keys.None;
 
 
         public InputBox(GraphicsDevice graphicsDevice, SpriteFont font, Vector2 position, int width, int height, bool obscured, int limit)
@@ -37,7 +37,7 @@ namespace CompSci_NEA.GUI
             this.font = font;
             this.position = position;
             this.bounds = new Rectangle((int)position.X, (int)position.Y, width, height);
-            this.color = Color.Red;
+            this.colour = Color.Red;
             this.text = string.Empty;
             this.isActive = false;
             this.obscured = obscured;
@@ -45,7 +45,7 @@ namespace CompSci_NEA.GUI
             backgroundTexture = new Texture2D(graphicsDevice, 1, 1);
             backgroundTexture.SetData(new[] { Color.White });
 
-            inputText = new Text(font, text, position + new Vector2(20, 20), Color.White, 3.0f);
+            _inputText = new Text(font, text, position + new Vector2(20, 20), Color.White, 3.0f);
             this.limit = limit;
         }
 
@@ -56,7 +56,7 @@ namespace CompSci_NEA.GUI
             double elapsedTime = gameTime.ElapsedGameTime.TotalMilliseconds;
 
             bool isMouseClicked = mouseState.LeftButton == ButtonState.Pressed;
-            if (bounds.Contains(mouseState.X, mouseState.Y) && isMouseClicked && !wasMousePressed)
+            if (bounds.Contains(mouseState.X, mouseState.Y) && isMouseClicked && !_wasMousePressed)
             {
                 isActive = true;
                 OnClick();
@@ -65,7 +65,7 @@ namespace CompSci_NEA.GUI
             {
                 isActive = false;
             }
-            wasMousePressed = isMouseClicked;
+            _wasMousePressed = isMouseClicked;
 
             if (isActive)
             {
@@ -76,28 +76,28 @@ namespace CompSci_NEA.GUI
                 {
                     Keys key = pressedKeys[0];
 
-                    if (key != lastKeyPressed)
+                    if (key != _lastKeyPressed)
                     {
-                        keyRepeatTimer = InitialKeyDelay; 
+                        _keyRepeatTimer = _initialKeyDelay; 
                         keyToProcess = key;
                     }
-                    else if (keyRepeatTimer <= 0)
+                    else if (_keyRepeatTimer <= 0)
                     {
-                        keyRepeatTimer = KeyRepeatRate; 
+                        _keyRepeatTimer = _keyRepeatRate; 
                         keyToProcess = key;
                     }
 
-                    lastKeyPressed = key;
+                    _lastKeyPressed = key;
                 }
                 else
                 {
-                    lastKeyPressed = Keys.None;
-                    keyRepeatTimer = 0; 
+                    _lastKeyPressed = Keys.None;
+                    _keyRepeatTimer = 0; 
                 }
 
-                if (lastKeyPressed != Keys.None)
+                if (_lastKeyPressed != Keys.None)
                 {
-                    keyRepeatTimer -= elapsedTime;
+                    _keyRepeatTimer -= elapsedTime;
                 }
 
                 if (keyToProcess.HasValue)
@@ -105,10 +105,10 @@ namespace CompSci_NEA.GUI
                     HandleKeyPress(keyToProcess.Value);
                 }
 
-                inputText.UpdateContent(obscured ? new string('*', text.Length) : text);
+                _inputText.UpdateContent(obscured ? new string('*', text.Length) : text);
             }
 
-            color = isActive ? Color.DarkGray : Color.Gray;
+            colour = isActive ? Color.DarkGray : Color.Gray;
         }
 
 
@@ -132,14 +132,14 @@ namespace CompSci_NEA.GUI
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(backgroundTexture, bounds, color);
-            inputText.Draw(spriteBatch);
+            spriteBatch.Draw(backgroundTexture, bounds, colour);
+            _inputText.Draw(spriteBatch);
         }
 
         public void Move(Vector2 newPosition)
         {
             bounds = new Rectangle((int)newPosition.X, (int)newPosition.Y, bounds.Width, bounds.Height);
-            inputText.position = newPosition + new Vector2(20, 20);
+            _inputText.position = newPosition + new Vector2(20, 20);
         }
 
         public string GetText()

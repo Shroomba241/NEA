@@ -1,10 +1,10 @@
 ﻿using CompSci_NEA.Core;
+using CompSci_NEA.GUI;
 using CompSci_NEA.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Data.SqlClient;
-using System.Linq;
 
 namespace CompSci_NEA
 {
@@ -13,11 +13,15 @@ namespace CompSci_NEA
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         public Core.GameState currentState;
-        private Scenes.Scene currentScene;
         public bool pauseCurrentSceneUpdateing;
-        public string LoggedInUsername { get; set; }
+        public static string LoggedInUsername = "Shroomba";
+        public static int LoggedInUserID = 1;
+        public bool InMiniGame = false;
 
-        //idk if these need to be here or maybe i could scene them somewhere.
+        // Scene stack system
+        private SceneStack sceneStack;
+
+        // Database functionality (if still needed)
         private Database.DbFunctions _dbFunctions;
         private Database.CreateDB _createDB;
 
@@ -26,27 +30,21 @@ namespace CompSci_NEA
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            sceneStack = new SceneStack(this);
         }
-
 
         protected override void Initialize()
         {
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.IsFullScreen = true;
-            _graphics.HardwareModeSwitch = false; //boarderless windowed
-            //_graphics.SynchronizeWithVerticalRetrace = false; // Disable VSync
-            //IsFixedTimeStep = false;
+            _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
-            
 
-            currentState = Core.GameState.AdminView;
+            currentState = Core.GameState.DEBUG;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
-            //_dbFunctions = new Database.DbFunctions();
 
-            //Console.WriteLine(_dbFunctions.AuthenticateUser("TestUser", "password123"));
-            //_dbFunctions.AddUser("Shroomba", "Password123");
             base.Initialize();
         }
 
@@ -54,53 +52,59 @@ namespace CompSci_NEA
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             TextureManager.LoadContent(Content);
-            //Enumerable.Range(0, 10).ToList().ForEach(_ => Console.WriteLine(_dbFunctions.GenerateRandomSalt()));
             ChangeState(currentState);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if (!pauseCurrentSceneUpdateing) currentScene.Update(gameTime);
-
+            sceneStack.Update(gameTime);
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
-
-            if (!pauseCurrentSceneUpdateing) currentScene.Draw(_spriteBatch);
-
+            sceneStack.Draw(_spriteBatch);
             base.Draw(gameTime);
         }
+
 
         public void ChangeState(GameState newState)
         {
             pauseCurrentSceneUpdateing = true;
-            currentScene?.Shutdown();
 
-            currentState = newState;
-            switch (newState)
+            Scene newScene = newState switch
             {
-                case GameState.Login:
-                    currentScene = new LoginScene(this);
-                    break;
-                case GameState.DEBUG:
-                    currentScene = new MOVEDEBUGTEST(this);
-                    break;
-                case GameState.ZoneATest:
-                    currentScene = new ZoneABiomeTesting(this);
-                    break;
-                case GameState.AdminView:
-                    LoggedInUsername = "Shroomba";
-                    currentScene = new AdminView(this);
-                    break;
-            }
-            currentScene.LoadContent();
+                GameState.Login => new LoginScene(this),
+                GameState.DEBUG => new MOVEDEBUGTEST(this),
+                GameState.AdminView => new AdminView(this),
+                GameState.MainMenu => new MainMenu(this),
+                _ => null
+            };
+
+            if (newScene != null)
+                sceneStack.ChangeScene(newScene);
+        }
+
+        public void StartMiniGame(SubGameState newState)
+        {
+            Scene subScene = newState switch
+            {
+                SubGameState.Tetris => new TetrisGame(this),
+                _ => null
+            };
+            sceneStack.PushScene(subScene);
+        }
+
+        public void CloseMiniGame(int reward)
+        {
+            sceneStack.PopScene();
+
+            ((MOVEDEBUGTEST)sceneStack.CurrentScene).UpdateShmacks(reward);
         }
     }
 }
