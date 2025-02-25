@@ -1,33 +1,32 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using CompSci_NEA.WorldGeneration;
 using CompSci_NEA.Core;
 using CompSci_NEA.Entities;
 using CompSci_NEA.Scenes;
+using System.Collections.Generic;
 
 namespace CompSci_NEA.Tilemap
 {
     public class VisualTileMap : BaseTileMap
     {
-        private int seed;
-        private Texture2D mapTexture;  // Our map texture
-        private Color[] mapData;       // Pixel data for the map texture
-        private int textureWidth, textureHeight;
-        // Keep track of which chunks have been added to the map texture.
-        private HashSet<Point> processedChunks = new HashSet<Point>();
+        private int _seed;
+        private Texture2D _mapTexture;
+        private Color[] _mapData;
+        private int _textureWidth, _textureHeight;
+        private HashSet<Point> _processedChunks = new HashSet<Point>();
 
         public VisualTileMap(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY, int seed)
             : base(graphicsDevice, totalChunksX, totalChunksY, seed)
         {
-            this.seed = seed;
+            _seed = seed;
             tileAtlas = TextureManager.ATLAS;
             NoiseGenerator.SetSeed(seed);
         }
 
         private GenerateBaseWorld _baseWorldGenerator;
-        private GenerateBaseWorld BaseWorldGenerator
+        private GenerateBaseWorld _baseWorldGeneratorProp
         {
             get
             {
@@ -45,7 +44,7 @@ namespace CompSci_NEA.Tilemap
 
         public override byte GenerateTile(int x, int y)
         {
-            return BaseWorldGenerator.GenerateFinalTile(x, y);
+            return _baseWorldGeneratorProp.GenerateFinalTile(x, y);
         }
 
         public void Draw(SpriteBatch spriteBatch, Player player)
@@ -69,7 +68,6 @@ namespace CompSci_NEA.Tilemap
             Point key = new Point(chunkX, chunkY);
             if (!chunks.ContainsKey(key))
             {
-                // Lazily generate the chunk.
                 chunks[key] = CreateChunk(chunkX, chunkY);
             }
 
@@ -99,36 +97,26 @@ namespace CompSci_NEA.Tilemap
             }
         }
 
-        /// <summary>
-        /// Call this when the map is (re)generated so the texture is reset.
-        /// </summary>
         public void InitializeMapTexture(GraphicsDevice graphicsDevice, int texWidth, int texHeight, StructureTileMap structures)
         {
-            textureWidth = texWidth;
-            textureHeight = texHeight;
-            mapTexture = new Texture2D(graphicsDevice, textureWidth, textureHeight);
-            mapData = new Color[textureWidth * textureHeight];
-            // Initialize all pixels to a default background (e.g., black)
-            for (int i = 0; i < mapData.Length; i++)
-                mapData[i] = Color.Black;
-            processedChunks.Clear();
+            _textureWidth = texWidth;
+            _textureHeight = texHeight;
+            _mapTexture = new Texture2D(graphicsDevice, _textureWidth, _textureHeight);
+            _mapData = new Color[_textureWidth * _textureHeight];
+            for (int i = 0; i < _mapData.Length; i++)
+                _mapData[i] = Color.Black;
+            _processedChunks.Clear();
         }
 
-        /// <summary>
-        /// Incrementally updates the map texture with any chunks that have been generated but not yet added.
-        /// Call this (for example) every 5 seconds.
-        /// </summary>
         public Texture2D UpdateMapTexture(GraphicsDevice graphicsDevice)
         {
-            // Calculate world dimensions in tiles.
             int worldWidthInTiles = totalChunksX * chunkSize;
             int worldHeightInTiles = totalChunksY * chunkSize;
 
             foreach (var kvp in chunks)
             {
                 Point chunkCoords = kvp.Key;
-                // Skip if this chunk is already processed.
-                if (processedChunks.Contains(chunkCoords))
+                if (_processedChunks.Contains(chunkCoords))
                     continue;
 
                 byte[,] chunk = kvp.Value;
@@ -142,68 +130,19 @@ namespace CompSci_NEA.Tilemap
                         int worldTileX = chunkCoords.X * chunkSize + localX;
                         int worldTileY = chunkCoords.Y * chunkSize + localY;
 
-                        // Map the tile position to a pixel in the texture.
-                        int pixelX = (int)((worldTileX / (float)worldWidthInTiles) * textureWidth);
-                        int pixelY = (int)((worldTileY / (float)worldHeightInTiles) * textureHeight);
+                        int pixelX = (int)((worldTileX / (float)worldWidthInTiles) * _textureWidth);
+                        int pixelY = (int)((worldTileY / (float)worldHeightInTiles) * _textureHeight);
 
-                        // Clamp to ensure we don't exceed the texture bounds.
-                        pixelX = Math.Clamp(pixelX, 0, textureWidth - 1);
-                        pixelY = Math.Clamp(pixelY, 0, textureHeight - 1);
+                        pixelX = Math.Clamp(pixelX, 0, _textureWidth - 1);
+                        pixelY = Math.Clamp(pixelY, 0, _textureHeight - 1);
 
-                        mapData[pixelY * textureWidth + pixelX] = tileColor;
+                        _mapData[pixelY * _textureWidth + pixelX] = tileColor;
                     }
                 }
-                // Mark this chunk as processed.
-                processedChunks.Add(chunkCoords);
+                _processedChunks.Add(chunkCoords);
             }
-
-            // Update the texture with the new map data.
-            mapTexture.SetData(mapData);
-            return mapTexture;
-        }
-
-        // The existing GenerateMapTexture method is left here if needed.
-        public Texture2D GenerateMapTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight, StructureTileMap structures)
-        {
-            // This version generates the texture from scratch. 
-            // You might call InitializeMapTexture and then repeatedly call UpdateMapTexture() to add new chunks.
-            Texture2D fullMapTexture = new Texture2D(graphicsDevice, textureWidth, textureHeight);
-            Color[] fullMapData = new Color[textureWidth * textureHeight];
-
-            int worldWidthInTiles = totalChunksX * chunkSize;
-            int worldHeightInTiles = totalChunksY * chunkSize;
-
-            for (int chunkY = 0; chunkY < totalChunksY; chunkY++)
-            {
-                for (int chunkX = 0; chunkX < totalChunksX; chunkX++)
-                {
-                    Point key = new Point(chunkX, chunkY);
-                    if (!chunks.ContainsKey(key))
-                        continue;
-
-                    byte[,] chunk = chunks[key];
-
-                    for (int tileY = 0; tileY < chunkSize; tileY++)
-                    {
-                        for (int tileX = 0; tileX < chunkSize; tileX++)
-                        {
-                            byte tileID = chunk[tileY, tileX];
-                            Color tileColor = tileTypes.ContainsKey(tileID) ? tileTypes[tileID].Color : Color.Red;
-                            int worldX = chunkX * chunkSize + tileX;
-                            int worldY = chunkY * chunkSize + tileY;
-                            int pixelX = (int)((worldX / (float)worldWidthInTiles) * textureWidth);
-                            int pixelY = (int)((worldY / (float)worldHeightInTiles) * textureHeight);
-                            pixelX = Math.Clamp(pixelX, 0, textureWidth - 1);
-                            pixelY = Math.Clamp(pixelY, 0, textureHeight - 1);
-                            fullMapData[pixelY * textureWidth + pixelX] = tileColor;
-                        }
-                    }
-                }
-            }
-
-            fullMapTexture.SetData(fullMapData);
-            Console.WriteLine("Map generated from scratch");
-            return fullMapTexture;
+            _mapTexture.SetData(_mapData);
+            return _mapTexture;
         }
     }
 }

@@ -55,6 +55,29 @@ namespace CompSci_NEA.Database
             return Hasher(password + salt);
         }
 
+        public int GetUserIDFromUsername(string username)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "SELECT user_id FROM Users WHERE username = @username";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+
+                    using (SQLiteDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return Convert.ToInt32(reader["user_id"]);
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
+
+
         public bool AuthenticateUser(string username, string password)
         {
             using (SQLiteConnection conn = OpenConnection())
@@ -132,7 +155,7 @@ namespace CompSci_NEA.Database
                     string insertNewUser = @"
                     INSERT INTO Users (username, password_hash, salt) 
                     VALUES (@username, @passwordHash, @salt)
-                ";
+                    ";
 
                     using (SQLiteCommand cmd = new SQLiteCommand(insertNewUser, conn))
                     {

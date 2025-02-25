@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using CompSci_NEA.WorldGeneration; 
+using CompSci_NEA.WorldGeneration;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CompSci_NEA.WorldGeneration
@@ -12,14 +12,14 @@ namespace CompSci_NEA.WorldGeneration
         private readonly int totalChunksY;
         private readonly int chunkSize;
         private readonly int seed;
-        private readonly float centerX;
-        private readonly float centerY;
-        private readonly float totalWidth;
-        private readonly float totalHeight;
-        private readonly float scaleFactor;
+        private readonly float _centerX;
+        private readonly float _centerY;
+        private readonly float _totalWidth;
+        private readonly float _totalHeight;
+        private readonly float _scaleFactor;
 
-        private BiomeGenerator biomeGenerator;
-        private byte[,] biomeMap;
+        private BiomeGenerator _biomeGenerator;
+        private byte[,] _biomeMap;
 
         public GenerateBaseWorld(int totalChunksX, int totalChunksY, int chunkSize, int seed)
         {
@@ -28,17 +28,17 @@ namespace CompSci_NEA.WorldGeneration
             this.chunkSize = chunkSize;
             this.seed = seed;
 
-            totalWidth = totalChunksX * chunkSize;
-            totalHeight = totalChunksY * chunkSize;
-            centerX = totalWidth * 0.5f;
-            centerY = totalHeight * 0.5f;
-            scaleFactor = totalChunksX / 16f;
+            _totalWidth = totalChunksX * chunkSize;
+            _totalHeight = totalChunksY * chunkSize;
+            _centerX = _totalWidth * 0.5f;
+            _centerY = _totalHeight * 0.5f;
+            _scaleFactor = totalChunksX / 16f;
         }
 
         public byte GenerateTile(int x, int y)
         {
-            float normX = (x - centerX) / (totalWidth * 0.35f);
-            float normY = (y - centerY) / (totalHeight * 0.25f);
+            float normX = (x - _centerX) / (_totalWidth * 0.35f);
+            float normY = (y - _centerY) / (_totalHeight * 0.25f);
             float baseShape = (normX * normX) + (normY * normY);
             baseShape -= NoiseGenerator.Generate(x * 0.005f, y * 0.005f) * 0.3f;
 
@@ -51,14 +51,14 @@ namespace CompSci_NEA.WorldGeneration
 
             float landThreshold = 0.9f - (largeNoise * 0.1f) + (mediumNoise * 0.05f);
 
-            float t = y / totalHeight;
+            float t = y / _totalHeight;
 
-            float leftRiverCenter = MathHelper.Lerp(centerX - 110f * scaleFactor, centerX - 150f * scaleFactor, t) +
-                                    ((NoiseGenerator.Generate(1000, y * 0.01f) - 0.5f) * 2 * totalWidth * 0.05f);
+            float leftRiverCenter = MathHelper.Lerp(_centerX - 110f * _scaleFactor, _centerX - 150f * _scaleFactor, t) +
+                                    ((NoiseGenerator.Generate(1000, y * 0.01f) - 0.5f) * 2 * _totalWidth * 0.05f);
 
-            float rightRiverCenter = MathHelper.Lerp(centerX + 200f * scaleFactor, centerX + 400f * scaleFactor, t) -
-                                     (100f * scaleFactor * 4 * t * (1 - t)) -
-                                     ((NoiseGenerator.Generate(1000, y * 0.01f) - 0.5f) * 2 * totalWidth * 0.05f);
+            float rightRiverCenter = MathHelper.Lerp(_centerX + 200f * _scaleFactor, _centerX + 400f * _scaleFactor, t) -
+                                     (100f * _scaleFactor * 4 * t * (1 - t)) -
+                                     ((NoiseGenerator.Generate(1000, y * 0.01f) - 0.5f) * 2 * _totalWidth * 0.05f);
 
             if (MathF.Abs(x - leftRiverCenter) < 5f || MathF.Abs(x - rightRiverCenter) < 5f)
                 return 2; // River or sea tile
@@ -74,7 +74,7 @@ namespace CompSci_NEA.WorldGeneration
 
             if (baseTile == 3)
             {
-                if (biomeMap == null)
+                if (_biomeMap == null)
                 {
                     byte[,] world = new byte[totalChunksX * chunkSize, totalChunksY * chunkSize];
 
@@ -86,24 +86,24 @@ namespace CompSci_NEA.WorldGeneration
                         }
                     }
 
-                    biomeGenerator = new BiomeGenerator(world, 800, world.GetLength(1)); //300 or 800
-                    biomeMap = biomeGenerator.GetBiomeMap();
+                    _biomeGenerator = new BiomeGenerator(world, 800, world.GetLength(1)); //300 or 800
+                    _biomeMap = _biomeGenerator.GetBiomeMap();
                 }
 
-                return biomeMap[x, y]; 
+                return _biomeMap[x, y];
             }
 
-            return baseTile; 
+            return baseTile;
         }
 
         public Texture2D GenerateTemperatureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
         {
-            return biomeGenerator.GenerateTemperatureTexture(graphicsDevice, textureWidth, textureHeight);
+            return _biomeGenerator.GenerateTemperatureTexture(graphicsDevice, textureWidth, textureHeight);
         }
 
         public Texture2D GenerateMoistureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
         {
-            return biomeGenerator.GenerateMoistureTexture(graphicsDevice, textureWidth, textureHeight);
+            return _biomeGenerator.GenerateMoistureTexture(graphicsDevice, textureWidth, textureHeight);
         }
     }
 }

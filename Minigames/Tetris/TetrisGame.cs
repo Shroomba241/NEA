@@ -5,13 +5,13 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 
-namespace CompSci_NEA
+namespace CompSci_NEA.Minigames.Tetris
 {
     public class TetrisGame : Scenes.Scene
     {
         private Main game;
 
-        protected Board _board;
+        protected TBoard _board;
         protected ScoreBoard _scoreboard;
         protected Tetromino _currentPiece;
 
@@ -41,7 +41,7 @@ namespace CompSci_NEA
         {
             _debugBG = game.Content.Load<Texture2D>("debugBG2");
 
-            _board = new Board();
+            _board = new TBoard();
             _scoreboard = new ScoreBoard(game.GraphicsDevice ,new Vector2(450, 30), Color.White, new Vector2(600, 70));
 
             //tetromino queue init

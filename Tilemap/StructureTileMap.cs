@@ -9,14 +9,14 @@ namespace CompSci_NEA.Tilemap
 {
     public class StructureTileMap : BaseTileMap
     {
-        private StoneBridge stoneBridge;
+        private StoneBridge _stoneBridge;
 
         public StructureTileMap(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY, int seed)
             : base(graphicsDevice, totalChunksX, totalChunksY, seed)
         {
             tileAtlas = TextureManager.ATLAS;
-            stoneBridge = new StoneBridge(tileAtlas, seed);
-            stoneBridge.Generate(400 * 48, 400 * 48, 100);
+            _stoneBridge = new StoneBridge(tileAtlas, seed);
+            _stoneBridge.Generate(400 * 48, 400 * 48, 100);
         }
 
         public override byte GenerateTile(int x, int y)
@@ -48,13 +48,12 @@ namespace CompSci_NEA.Tilemap
 
                                 TileType tileType = tileTypes[tileID];
                                 Vector2 position = new Vector2((currentChunkX * chunkSize + x) * 48, (currentChunkY * chunkSize + y) * 48);
-                                // Use the new GetEffectiveTextureRegion call.
                                 Rectangle sourceRect = tileType.GetEffectiveTextureRegion((int)position.X, (int)position.Y);
                                 spriteBatch.Draw(tileAtlas, position, sourceRect, tileType.Color, 0f, Vector2.Zero, 3.0f, SpriteEffects.None, 0f);
                             }
                         }
                     }
-                    stoneBridge.DrawBackgroundInRect(spriteBatch, chunkRect);
+                    _stoneBridge.DrawBackgroundInRect(spriteBatch, chunkRect);
                 }
             }
         }
@@ -70,14 +69,14 @@ namespace CompSci_NEA.Tilemap
                     int currentChunkX = chunkX + offsetX;
                     int currentChunkY = chunkY + offsetY;
                     Rectangle chunkRect = new Rectangle(currentChunkX * chunkSize * 48, currentChunkY * chunkSize * 48, chunkSize * 48, chunkSize * 48);
-                    stoneBridge.DrawForegroundInRect(spriteBatch, chunkRect);
+                    _stoneBridge.DrawForegroundInRect(spriteBatch, chunkRect);
                 }
             }
         }
 
         public List<Rectangle> StoneBridgeColliders
         {
-            get { return stoneBridge.GetBottomRailingColliders(); }
+            get { return _stoneBridge.GetBottomRailingColliders(); }
         }
     }
 }

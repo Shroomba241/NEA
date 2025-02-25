@@ -5,24 +5,24 @@ namespace CompSci_NEA.WorldGeneration
 {
     public static class NoiseGenerator
     {
-        private static int[] permutationTable;
-        private static Random random;
+        private static int[] _permutationTable;
+        private static Random _random;
 
         public static void SetSeed(int seed)
         {
-            random = new Random(MOVEDEBUGTEST.SEED);
+            _random = new Random(MOVEDEBUGTEST.SEED);
             GeneratePermutationTable();
         }
 
         static NoiseGenerator()
         {
-            random = new Random(MOVEDEBUGTEST.SEED); 
+            _random = new Random(MOVEDEBUGTEST.SEED);
             GeneratePermutationTable();
         }
 
         private static void GeneratePermutationTable()
         {
-            permutationTable = new int[512];
+            _permutationTable = new int[512];
             int[] p = new int[256];
 
             for (int i = 0; i < 256; i++)
@@ -30,12 +30,12 @@ namespace CompSci_NEA.WorldGeneration
 
             for (int i = 0; i < 256; i++)
             {
-                int swap = random.Next(256);
+                int swap = _random.Next(256);
                 (p[i], p[swap]) = (p[swap], p[i]);
             }
 
             for (int i = 0; i < 512; i++)
-                permutationTable[i] = p[i % 256];
+                _permutationTable[i] = p[i % 256];
         }
 
         private static float Fade(float t) => t * t * t * (t * (t * 6 - 15) + 10);
@@ -68,12 +68,12 @@ namespace CompSci_NEA.WorldGeneration
                 float u = Fade(localX);
                 float v = Fade(localY);
 
-                int A = permutationTable[X] + Y;
-                int B = permutationTable[X + 1] + Y;
+                int A = _permutationTable[X] + Y;
+                int B = _permutationTable[X + 1] + Y;
 
                 float value = Lerp(
-                    Lerp(Grad(permutationTable[A], localX, localY), Grad(permutationTable[B], localX - 1, localY), u),
-                    Lerp(Grad(permutationTable[A + 1], localX, localY - 1), Grad(permutationTable[B + 1], localX - 1, localY - 1), u),
+                    Lerp(Grad(_permutationTable[A], localX, localY), Grad(_permutationTable[B], localX - 1, localY), u),
+                    Lerp(Grad(_permutationTable[A + 1], localX, localY - 1), Grad(_permutationTable[B + 1], localX - 1, localY - 1), u),
                     v);
 
                 noiseSum += value * amplitude;
@@ -83,7 +83,7 @@ namespace CompSci_NEA.WorldGeneration
                 frequency /= lacunarity;
             }
 
-            return (noiseSum / maxValue + 1) / 2; // Normalize to 0 < noise < 1
+            return (noiseSum / maxValue + 1) / 2; //normalise to 0 < noise < 1
         }
     }
 }

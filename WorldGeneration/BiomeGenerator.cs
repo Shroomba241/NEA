@@ -9,8 +9,8 @@ namespace CompSci_NEA.WorldGeneration
     {
         private int width, height;
         private byte[,] world;
-        private byte[,] mask;
-        private byte[,] biomeMap;
+        private byte[,] _mask;
+        private byte[,] _biomeMap;
 
         public BiomeGenerator(byte[,] world, int width, int height)
         {
@@ -27,25 +27,25 @@ namespace CompSci_NEA.WorldGeneration
             this.width = width;
             this.height = height;
             this.world = world;
-            this.mask = ExtractMask(world, 3);
-            this.biomeMap = new byte[width, height];
+            this._mask = ExtractMask(world, 3);
+            this._biomeMap = new byte[width, height];
 
             float minTemperature = 0f;
             float maxTemperature = 1f;
             float noiseScale = 0.05f;
             float noiseAmplitude = 0.2f;
 
-            float desiredTundraPerc = 0.10f;  // biome 9
-            float desiredFieldsPerc = 0.60f;  // biome 7
-            float desiredWastelandPerc = 0.30f;  // biome 10
+            float desiredTundraPerc = 0.10f; // biome 9
+            float desiredFieldsPerc = 0.60f; // biome 7
+            float desiredWastelandPerc = 0.30f; // biome 10
 
-            float th1 = 0.2f; 
-            float th3 = 0.8f; 
+            float th1 = 0.2f;
+            float th3 = 0.8f;
 
             int safeCount = 0;
             for (int x = 0; x < width; x++)
                 for (int y = 0; y < height; y++)
-                    if (mask[x, y] == 1)
+                    if (_mask[x, y] == 1)
                         safeCount++;
 
             int maxIterations = 10;
@@ -56,30 +56,31 @@ namespace CompSci_NEA.WorldGeneration
                 {
                     for (int y = 0; y < height; y++)
                     {
-                        if (mask[x, y] == 1)
+                        if (_mask[x, y] == 1)
                         {
                             float baseTemp = GetBaseTemperature(x, y, width, height);
                             float noiseValue = NoiseGenerator.Generate(x * noiseScale, y * noiseScale, octaves: 3, frequency: 10f);
                             float adjustedNoise = (noiseValue - 0.5f) * noiseAmplitude;
                             float temperature = MathHelper.Clamp(baseTemp + adjustedNoise, minTemperature, maxTemperature);
                             byte biome = (temperature < th1) ? (byte)9 : (temperature < th3 ? (byte)7 : (byte)10);
-                            biomeMap[x, y] = biome;
+                            _biomeMap[x, y] = biome;
                         }
                         else
                         {
-                            biomeMap[x, y] = world[x, y];
+                            _biomeMap[x, y] = world[x, y];
                         }
                     }
                 }
 
-                Dictionary<byte, int> counts = new Dictionary<byte, int>() {
+                Dictionary<byte, int> counts = new Dictionary<byte, int>()
+                {
                     {9, 0}, {7, 0}, {10, 0}
                 };
                 for (int x = 0; x < width; x++)
                     for (int y = 0; y < height; y++)
-                        if (mask[x, y] == 1)
+                        if (_mask[x, y] == 1)
                         {
-                            byte b = biomeMap[x, y];
+                            byte b = _biomeMap[x, y];
                             if (counts.ContainsKey(b))
                                 counts[b]++;
                         }
@@ -110,7 +111,7 @@ namespace CompSci_NEA.WorldGeneration
             {
                 for (int y = 0; y < height; y++)
                 {
-                    if (mask[x, y] == 1)
+                    if (_mask[x, y] == 1)
                     {
                         float baseTemp = GetBaseTemperature(x, y, width, height);
                         float noiseValue = NoiseGenerator.Generate(x * noiseScale, y * noiseScale, octaves: 3, frequency: 10f);
@@ -122,36 +123,35 @@ namespace CompSci_NEA.WorldGeneration
                         byte biome;
                         if (temperature < 0.3f)
                         {
-                            biome = 9; // Tundra
+                            biome = 9; // tundra
                         }
                         else if (temperature < 0.7f)
                         {
                             if (moisture >= 0.7f)
-                                biome = 8; // ColourfulPlains
+                                biome = 8; // colourfulPlains
                             else
-                                biome = 7; // Plains
+                                biome = 7; // plains
                         }
                         else
                         {
                             if (moisture < 0.3f)
-                                biome = 11; // Savanna
+                                biome = 11; // savanna
                             else if (moisture < 0.7f)
-                                biome = 6;  // Beach
+                                biome = 6;  // beach
                             else
-                                biome = 10; // Wetlands
+                                biome = 10; // wetlands
                         }
-                        biomeMap[x, y] = biome;
+                        _biomeMap[x, y] = biome;
                     }
                     else
                     {
-                        biomeMap[x, y] = world[x, y];
+                        _biomeMap[x, y] = world[x, y];
                     }
                 }
             }
         }
 
-
-        float GetBaseTemperature(int x, int y, int width, int height, float[,] matrix = null, float verticalExp = 1f) //todo: see if i can make these things better
+        float GetBaseTemperature(int x, int y, int width, int height, float[,] matrix = null, float verticalExp = 1f)
         {
             if (matrix == null)
             {
@@ -230,9 +230,9 @@ namespace CompSci_NEA.WorldGeneration
             return mask;
         }
 
-        public byte[,] GetBiomeMap() => biomeMap;
+        public byte[,] GetBiomeMap() => _biomeMap;
 
-        public Texture2D GenerateTemperatureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight) //redundant in final logic
+        public Texture2D GenerateTemperatureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
         {
             Texture2D texture = new Texture2D(graphicsDevice, textureWidth, textureHeight);
             Color[] textureData = new Color[textureWidth * textureHeight];
@@ -251,7 +251,7 @@ namespace CompSci_NEA.WorldGeneration
                     float temp = GetBaseTemperature(ix, iy, width, height);
                     Color baseColor = Color.Lerp(Color.Blue, Color.Red, temp);
 
-                    bool isSafe = (mask[ix, iy] == 1);
+                    bool isSafe = (_mask[ix, iy] == 1);
                     bool isEdge = false;
                     if (isSafe)
                     {
@@ -263,7 +263,7 @@ namespace CompSci_NEA.WorldGeneration
                                     continue;
                                 int nx = ix + dx;
                                 int ny = iy + dy;
-                                if (nx < 0 || nx >= width || ny < 0 || ny >= height || mask[nx, ny] == 0)
+                                if (nx < 0 || nx >= width || ny < 0 || ny >= height || _mask[nx, ny] == 0)
                                 {
                                     isEdge = true;
                                 }
@@ -283,7 +283,7 @@ namespace CompSci_NEA.WorldGeneration
             return texture;
         }
 
-        public Texture2D GenerateMoistureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight) //redundant in final logic
+        public Texture2D GenerateMoistureTexture(GraphicsDevice graphicsDevice, int textureWidth, int textureHeight)
         {
             Texture2D texture = new Texture2D(graphicsDevice, textureWidth, textureHeight);
             Color[] textureData = new Color[textureWidth * textureHeight];
@@ -302,7 +302,7 @@ namespace CompSci_NEA.WorldGeneration
                     float moisture = GetBaseMoisture(ix, iy, width, height);
                     Color baseColor = Color.Lerp(Color.SandyBrown, Color.Green, moisture);
 
-                    bool isSafe = (mask[ix, iy] == 1);
+                    bool isSafe = (_mask[ix, iy] == 1);
                     bool isEdge = false;
                     if (isSafe)
                     {
@@ -314,7 +314,7 @@ namespace CompSci_NEA.WorldGeneration
                                     continue;
                                 int nx = ix + dx;
                                 int ny = iy + dy;
-                                if (nx < 0 || nx >= width || ny < 0 || ny >= height || mask[nx, ny] == 0)
+                                if (nx < 0 || nx >= width || ny < 0 || ny >= height || _mask[nx, ny] == 0)
                                 {
                                     isEdge = true;
                                 }

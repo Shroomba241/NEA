@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CompSci_NEA.Core;
 
-namespace CompSci_NEA
+namespace CompSci_NEA.Minigames.Tetris
 {
-    public class Board
+    public class TBoard
     {
         public const int X_OFFSET = 4;
         public const int Y_OFFSET = 2;

@@ -10,19 +10,19 @@ namespace CompSci_NEA.Scenes
     public class AdminView : Scene
     {
         private Main game;
-        private bool loaded = false;
-        private SpriteFont font;
+        private bool _loaded = false;
+        private SpriteFont _font;
 
-        private GUI.Button continueButton;
-        private GUI.Button logoutButton;
-        private GUI.Text titleText;
-        private GUI.DataTable userDataTable;
-        private GUI.InputBox editInputBox;
-        private bool editModeActive = false;
-        private GUI.Button toggleButton;
+        private GUI.Button _continueButton;
+        private GUI.Button _logoutButton;
+        private GUI.Text _titleText;
+        private GUI.DataTable _userDataTable;
+        private GUI.InputBox _editInputBox;
+        private bool _editModeActive = false;
+        private GUI.Button _toggleButton;
 
-        private RenderTarget2D renderTarget;
-        private Effect crtEffect;
+        private RenderTarget2D _renderTarget;
+        private Effect _crtEffect;
 
         public AdminView(Main game)
         {
@@ -31,87 +31,87 @@ namespace CompSci_NEA.Scenes
 
         public override void LoadContent() //TODO: userworldsaves and worlds data tables
         {
-            loaded = true;
-            font = game.Content.Load<SpriteFont>("DefaultFont");
+            _loaded = true;
+            _font = game.Content.Load<SpriteFont>("DefaultFont");
 
             string adminName = Main.LoggedInUsername ?? "Admin";
-            titleText = new GUI.Text(font, $"Admin Panel - {adminName}", new Vector2(100, 50), Color.White, 3.0f);
+            _titleText = new GUI.Text(_font, $"Admin Panel - {adminName}", new Vector2(100, 50), Color.White, 3.0f);
 
-            continueButton = new GUI.Button(game.GraphicsDevice, font, "Continue", new Vector2(520, 900), 420, 90);
-            logoutButton = new GUI.Button(game.GraphicsDevice, font, "Logout", new Vector2(100, 900), 400, 90);
-            continueButton.OnClickAction = () => game.ChangeState(GameState.MainMenu);
-            logoutButton.OnClickAction = () => game.ChangeState(GameState.Login);
+            _continueButton = new GUI.Button(game.GraphicsDevice, _font, "Continue", new Vector2(520, 900), 420, 90);
+            _logoutButton = new GUI.Button(game.GraphicsDevice, _font, "Logout", new Vector2(100, 900), 400, 90);
+            _continueButton.OnClickAction = () => game.ChangeState(GameState.MainMenu);
+            _logoutButton.OnClickAction = () => game.ChangeState(GameState.Login);
 
             Database.DbFunctions dbFunctions = new Database.DbFunctions();
             List<string[]> userRows = dbFunctions.GetAllUserData();
             string[] headers = new string[] { "User ID", "Username", "Admin", "Coins" };
-            userDataTable = new GUI.DataTable(game.GraphicsDevice, font, new Vector2(100, 200), headers, userRows);
+            _userDataTable = new GUI.DataTable(game.GraphicsDevice, _font, new Vector2(100, 200), headers, userRows);
 
             //start offscreen and used in editing data
-            editInputBox = new GUI.InputBox(game.GraphicsDevice, font, new Vector2(-500, -500), 800, 90, false, 15);
-            toggleButton = new GUI.Button(game.GraphicsDevice, font, "Toggle", new Vector2(-500, -500), 400, 90);
+            _editInputBox = new GUI.InputBox(game.GraphicsDevice, _font, new Vector2(-500, -500), 800, 90, false, 15);
+            _toggleButton = new GUI.Button(game.GraphicsDevice, _font, "Toggle", new Vector2(-500, -500), 400, 90);
 
-            renderTarget = new RenderTarget2D(game.GraphicsDevice,
+            _renderTarget = new RenderTarget2D(game.GraphicsDevice,
                 game.GraphicsDevice.PresentationParameters.BackBufferWidth,
                 game.GraphicsDevice.PresentationParameters.BackBufferHeight);
-            crtEffect = game.Content.Load<Effect>("CRTEffect");
+            _crtEffect = game.Content.Load<Effect>("CRTEffect");
 
-            game.pauseCurrentSceneUpdateing = false;
+            game.pauseCurrentSceneUpdating = false;
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (!loaded) return;
+            if (!_loaded) return;
             try
             {
-                userDataTable.Update();
-                continueButton.Update();
-                logoutButton.Update();
-                editInputBox.Update(gameTime);
-                toggleButton.Update();
+                _userDataTable.Update();
+                _continueButton.Update();
+                _logoutButton.Update();
+                _editInputBox.Update(gameTime);
+                _toggleButton.Update();
 
                 string adminName = Main.LoggedInUsername ?? "Admin";
-                titleText.UpdateContent($"Admin Panel - {adminName}");
+                _titleText.UpdateContent($"Admin Panel - {adminName}");
 
-                userDataTable.IgnoreMouseClicks = editModeActive;
+                _userDataTable.IgnoreMouseClicks = _editModeActive;
 
-                var sel = userDataTable.GetSelectedCell();
-                if (sel.HasValue && !editModeActive)
+                var sel = _userDataTable.GetSelectedCell();
+                if (sel.HasValue && !_editModeActive)
                 {
                     if (sel.Value.col == 2)
                     {
-                        editModeActive = true;
-                        toggleButton.Move(new Vector2(100, 700));
-                        toggleButton.OnClickAction = () =>
+                        _editModeActive = true;
+                        _toggleButton.Move(new Vector2(100, 700));
+                        _toggleButton.OnClickAction = () =>
                         {
-                            string currentValue = userDataTable.GetSelectedCellValue().Trim().ToLower();
+                            string currentValue = _userDataTable.GetSelectedCellValue().Trim().ToLower();
                             string newValue = (currentValue == "0" || currentValue == "false") ? "1" : "0";
-                            userDataTable.SetSelectedCellValue(newValue);
-                            userDataTable.ClearSelectedCell();
-                            toggleButton.Move(new Vector2(-500, -500));
-                            editModeActive = false;
+                            _userDataTable.SetSelectedCellValue(newValue);
+                            _userDataTable.ClearSelectedCell();
+                            _toggleButton.Move(new Vector2(-500, -500));
+                            _editModeActive = false;
                         };
                     }
                     else if (sel.Value.col != 0)
                     {
-                        editModeActive = true;
-                        editInputBox.Move(new Vector2(100, 700));
-                        string currentValue = userDataTable.GetSelectedCellValue();
-                        editInputBox.SetText(currentValue);
+                        _editModeActive = true;
+                        _editInputBox.Move(new Vector2(100, 700));
+                        string currentValue = _userDataTable.GetSelectedCellValue();
+                        _editInputBox.SetText(currentValue);
                     }
                 }
 
-                if (editModeActive && !toggleButton.IsHovered)
+                if (_editModeActive && !_toggleButton.IsHovered)
                 {
                     KeyboardState ks = Keyboard.GetState();
                     if (ks.IsKeyDown(Keys.Enter))
                     {
-                        string newValue = editInputBox.GetText();
-                        userDataTable.SetSelectedCellValue(newValue);
-                        editModeActive = false;
-                        editInputBox.Move(new Vector2(-500, -500));
-                        userDataTable.ClearSelectedCell();
-                        editInputBox.SetText("");
+                        string newValue = _editInputBox.GetText();
+                        _userDataTable.SetSelectedCellValue(newValue);
+                        _editModeActive = false;
+                        _editInputBox.Move(new Vector2(-500, -500));
+                        _userDataTable.ClearSelectedCell();
+                        _editInputBox.SetText("");
                     }
                 }
             }
@@ -123,42 +123,42 @@ namespace CompSci_NEA.Scenes
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            if (!loaded) return;
+            if (!_loaded) return;
 
-            game.GraphicsDevice.SetRenderTarget(renderTarget);
+            game.GraphicsDevice.SetRenderTarget(_renderTarget);
             game.GraphicsDevice.Clear(Color.Blue);
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            titleText.Draw(spriteBatch);
-            continueButton.Draw(spriteBatch);
-            logoutButton.Draw(spriteBatch);
-            userDataTable.Draw(spriteBatch);
+            _titleText.Draw(spriteBatch);
+            _continueButton.Draw(spriteBatch);
+            _logoutButton.Draw(spriteBatch);
+            _userDataTable.Draw(spriteBatch);
 
-            if (editModeActive)
-                editInputBox.Draw(spriteBatch);
-            var selCel = userDataTable.GetSelectedCell();
+            if (_editModeActive)
+                _editInputBox.Draw(spriteBatch);
+            var selCel = _userDataTable.GetSelectedCell();
             if (selCel.HasValue && selCel.Value.col == 2)
-                toggleButton.Draw(spriteBatch);
+                _toggleButton.Draw(spriteBatch);
 
             spriteBatch.End();
 
-            if (crtEffect.Parameters["Resolution"] != null)
-                crtEffect.Parameters["Resolution"].SetValue(new Vector2(renderTarget.Width, renderTarget.Height));
+            if (_crtEffect.Parameters["Resolution"] != null)
+                _crtEffect.Parameters["Resolution"].SetValue(new Vector2(_renderTarget.Width, _renderTarget.Height));
 
             game.GraphicsDevice.SetRenderTarget(null);
-            spriteBatch.Begin(effect: crtEffect, samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);
-            spriteBatch.Draw(renderTarget, new Rectangle(0, 0, renderTarget.Width, renderTarget.Height), Color.White);
+            spriteBatch.Begin(effect: _crtEffect, samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);
+            spriteBatch.Draw(_renderTarget, new Rectangle(0, 0, _renderTarget.Width, _renderTarget.Height), Color.White);
             spriteBatch.End();
         }
 
         public override void Shutdown() //TODO: look into texture GPU disposal if needed
         {
-            continueButton = null;
-            logoutButton = null;
-            toggleButton = null;
-            editInputBox = null;
-            userDataTable = null;
-            titleText = null;
+            _continueButton = null;
+            _logoutButton = null;
+            _toggleButton = null;
+            _editInputBox = null;
+            _userDataTable = null;
+            _titleText = null;
         }
     }
 }

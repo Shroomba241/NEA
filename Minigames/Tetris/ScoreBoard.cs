@@ -4,7 +4,7 @@ using System;
 using CompSci_NEA.GUI;
 using CompSci_NEA.Core;
 
-namespace CompSci_NEA
+namespace CompSci_NEA.Minigames.Tetris
 {
     public class ScoreBoard
     {

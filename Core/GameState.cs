@@ -17,6 +17,7 @@ namespace CompSci_NEA.Core
 
     public enum SubGameState
     {
-        Tetris
+        Tetris,
+        Connect4
     }
 }

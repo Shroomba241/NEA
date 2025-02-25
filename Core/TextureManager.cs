@@ -25,6 +25,7 @@ namespace CompSci_NEA.Core
         public static SpriteFont DefaultFont { get; private set; }
         public static Texture2D Tetromino_texture { get; private set; }
         public static Texture2D Shmacks { get; private set; }
+        public static Texture2D Disc {  get; private set; }
 
 
         public static void LoadContent(ContentManager content)
@@ -43,6 +44,7 @@ namespace CompSci_NEA.Core
             DefaultFont = content.Load<SpriteFont>("DefaultFont");
             Tetromino_texture = content.Load<Texture2D>("tetromino_texture");
             Shmacks = content.Load<Texture2D>("Shmacks");
+            Disc = content.Load<Texture2D>("DiscTexture");
 
 
             if (TESTGRASS == null) throw new Exception("Failed to load TESTGRASS texture.");

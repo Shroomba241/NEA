@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using CompSci_NEA.Core;
 
-namespace CompSci_NEA
+namespace CompSci_NEA.Minigames.Tetris
 {
     public class Tetromino
     {
@@ -134,9 +134,9 @@ namespace CompSci_NEA
                     if (Shape[y, x] == 1)
                     {
                         spriteBatch.Draw(TextureManager.Tetromino_texture,
-                            new Rectangle((int)((Position.X + x + Board.X_OFFSET) * Board.TileSize),
-                                          (int)((Position.Y + y + Board.Y_OFFSET) * Board.TileSize),
-                                          Board.TileSize, Board.TileSize), TetrominoColour);
+                            new Rectangle((int)((Position.X + x + TBoard.X_OFFSET) * TBoard.TileSize),
+                                          (int)((Position.Y + y + TBoard.Y_OFFSET) * TBoard.TileSize),
+                                          TBoard.TileSize, TBoard.TileSize), TetrominoColour);
                     }
                 }
             }
@@ -151,9 +151,9 @@ namespace CompSci_NEA
                     if (Shape[y, x] == 1)
                     {
                         spriteBatch.Draw(TextureManager.Tetromino_texture,
-                            new Rectangle((int)(drawPosition.X + x * Board.TileSize),
-                                          (int)(drawPosition.Y + y * Board.TileSize),
-                                          Board.TileSize, Board.TileSize), TetrominoColour);
+                            new Rectangle((int)(drawPosition.X + x * TBoard.TileSize),
+                                          (int)(drawPosition.Y + y * TBoard.TileSize),
+                                          TBoard.TileSize, TBoard.TileSize), TetrominoColour);
                     }
                 }
             }

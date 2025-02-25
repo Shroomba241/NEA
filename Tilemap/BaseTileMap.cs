@@ -152,7 +152,7 @@ namespace CompSci_NEA.Tilemap
 
             if (!chunks.ContainsKey(key))
             {
-                // Lazily generate this chunk when needed.
+                //lazily generate this chunk as needed
                 chunks[key] = CreateChunk(chunkX, chunkY);
             }
 

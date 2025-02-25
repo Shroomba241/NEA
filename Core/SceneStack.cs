@@ -48,7 +48,7 @@ namespace CompSci_NEA.Core
             _top = newNode; 
 
             newScene.LoadContent();
-            _game.pauseCurrentSceneUpdateing = _top.Next != null;
+            _game.pauseCurrentSceneUpdating = _top.Next != null;
         }
 
 
@@ -60,7 +60,7 @@ namespace CompSci_NEA.Core
             _top.Scene.Shutdown(); 
             _top = _top.Next; 
 
-            _game.pauseCurrentSceneUpdateing = _top?.Next != null; 
+            _game.pauseCurrentSceneUpdating = _top?.Next != null; 
         }
 
         public void Update(GameTime gameTime)

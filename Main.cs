@@ -12,25 +12,25 @@ namespace CompSci_NEA
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        public Core.GameState currentState;
-        public bool pauseCurrentSceneUpdateing;
+        public Core.GameState CurrentState;
+        public bool PauseCurrentSceneUpdateing;
         public static string LoggedInUsername = "Shroomba";
         public static int LoggedInUserID = 1;
         public bool InMiniGame = false;
 
-        // Scene stack system
-        private SceneStack sceneStack;
+        private SceneStack _sceneStack;
 
-        // Database functionality (if still needed)
         private Database.DbFunctions _dbFunctions;
         private Database.CreateDB _createDB;
+
+        public bool pauseCurrentSceneUpdating;
 
         public Main()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            sceneStack = new SceneStack(this);
+            _sceneStack = new SceneStack(this);
         }
 
         protected override void Initialize()
@@ -41,7 +41,7 @@ namespace CompSci_NEA
             _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
 
-            currentState = Core.GameState.DEBUG;
+            CurrentState = Core.GameState.DEBUG;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
 
@@ -52,7 +52,7 @@ namespace CompSci_NEA
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             TextureManager.LoadContent(Content);
-            ChangeState(currentState);
+            ChangeState(CurrentState);
         }
 
         protected override void Update(GameTime gameTime)
@@ -61,21 +61,20 @@ namespace CompSci_NEA
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            sceneStack.Update(gameTime);
+            _sceneStack.Update(gameTime);
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            sceneStack.Draw(_spriteBatch);
+            _sceneStack.Draw(_spriteBatch);
             base.Draw(gameTime);
         }
 
-
         public void ChangeState(GameState newState)
         {
-            pauseCurrentSceneUpdateing = true;
+            PauseCurrentSceneUpdateing = true;
 
             Scene newScene = newState switch
             {
@@ -87,24 +86,25 @@ namespace CompSci_NEA
             };
 
             if (newScene != null)
-                sceneStack.ChangeScene(newScene);
+                _sceneStack.ChangeScene(newScene);
         }
 
         public void StartMiniGame(SubGameState newState)
         {
             Scene subScene = newState switch
             {
-                SubGameState.Tetris => new TetrisGame(this),
+                SubGameState.Tetris => new Minigames.Tetris.TetrisGame(this),
+                SubGameState.Connect4 => new Minigames.Connect4.Connect4Game(this),
                 _ => null
             };
-            sceneStack.PushScene(subScene);
+            _sceneStack.PushScene(subScene);
         }
 
         public void CloseMiniGame(int reward)
         {
-            sceneStack.PopScene();
+            _sceneStack.PopScene();
 
-            ((MOVEDEBUGTEST)sceneStack.CurrentScene).UpdateShmacks(reward);
+            ((MOVEDEBUGTEST)_sceneStack.CurrentScene).UpdateShmacks(reward);
         }
     }
 }
