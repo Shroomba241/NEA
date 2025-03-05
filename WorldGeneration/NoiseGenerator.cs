@@ -1,5 +1,10 @@
-﻿using CompSci_NEA.Scenes;
+﻿using CompSci_NEA.Core;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CompSci_NEA.WorldGeneration
 {
@@ -10,13 +15,13 @@ namespace CompSci_NEA.WorldGeneration
 
         public static void SetSeed(int seed)
         {
-            _random = new Random(MOVEDEBUGTEST.SEED);
+            _random = new Random(seed);
             GeneratePermutationTable();
         }
 
         static NoiseGenerator()
         {
-            _random = new Random(MOVEDEBUGTEST.SEED);
+            _random = new Random();
             GeneratePermutationTable();
         }
 

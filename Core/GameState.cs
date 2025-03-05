@@ -18,6 +18,8 @@ namespace CompSci_NEA.Core
     public enum SubGameState
     {
         Tetris,
-        Connect4
+        Connect4,
+        Maze,
+        ShopMenu
     }
 }

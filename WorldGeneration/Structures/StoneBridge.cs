@@ -17,7 +17,7 @@ namespace CompSci_NEA.WorldGeneration.Structures
         }
     }
 
-    public class StoneBridge
+    public class StoneBridge : Structure
     {
         private List<StructureTileType> _topBaseTiles;
         private List<StructureTileType> _bottomBaseTiles;
@@ -240,6 +240,11 @@ namespace CompSci_NEA.WorldGeneration.Structures
                 colliders.Add(collider);
             }
             return colliders;
+        }
+
+        public IEnumerable<Rectangle> GetColliders()
+        {
+            return GetBottomRailingColliders();
         }
     }
 }

@@ -120,7 +120,7 @@ public class FoliageManager
             scale: 3f,
             displacementMultiplier: 3f,
             tintFunction: (biome, rand) => Color.White,
-            possibleSubGames: new SubGameState[] { SubGameState.Tetris } 
+            possibleSubGames: new SubGameState[] { SubGameState.Tetris, SubGameState.Connect4, SubGameState.Maze } 
         ));
     }
 

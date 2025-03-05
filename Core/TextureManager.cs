@@ -26,6 +26,8 @@ namespace CompSci_NEA.Core
         public static Texture2D Tetromino_texture { get; private set; }
         public static Texture2D Shmacks { get; private set; }
         public static Texture2D Disc {  get; private set; }
+        public static Texture2D BMOAtlas { get; private set; }
+        public static Texture2D PlayerMoveAtlas { get; private set; }
 
 
         public static void LoadContent(ContentManager content)
@@ -33,7 +35,7 @@ namespace CompSci_NEA.Core
             Console.WriteLine("loading textures");
             TESTGRASS = content.Load<Texture2D>("TESTGRASS");
             TESTWATER = content.Load<Texture2D>("TESTWATER");
-            ATLAS = content.Load<Texture2D>("ATLASV9");
+            ATLAS = content.Load<Texture2D>("ATLASV10");
             DEBUG_Collider = content.Load<Texture2D>("DEBUG_Collide");
             MainMenuBG = content.Load<Texture2D>("MainMenuBG");
             MainMenuClouds = content.Load<Texture2D>("MenuClouds");
@@ -45,6 +47,8 @@ namespace CompSci_NEA.Core
             Tetromino_texture = content.Load<Texture2D>("tetromino_texture");
             Shmacks = content.Load<Texture2D>("Shmacks");
             Disc = content.Load<Texture2D>("DiscTexture");
+            BMOAtlas = content.Load<Texture2D>("MRROBOTsheet");
+            PlayerMoveAtlas = content.Load<Texture2D>("PlayerMove");
 
 
             if (TESTGRASS == null) throw new Exception("Failed to load TESTGRASS texture.");

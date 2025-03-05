@@ -57,9 +57,9 @@ namespace CompSci_NEA
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+            /*if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+                Exit();*/
 
             _sceneStack.Update(gameTime);
             base.Update(gameTime);
@@ -95,6 +95,8 @@ namespace CompSci_NEA
             {
                 SubGameState.Tetris => new Minigames.Tetris.TetrisGame(this),
                 SubGameState.Connect4 => new Minigames.Connect4.Connect4Game(this),
+                SubGameState.Maze => new Minigames.Maze.MazeGame(this),
+                SubGameState.ShopMenu => new ShopMenu(this),
                 _ => null
             };
             _sceneStack.PushScene(subScene);

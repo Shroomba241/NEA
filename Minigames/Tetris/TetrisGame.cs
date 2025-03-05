@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace CompSci_NEA.Minigames.Tetris
 {
@@ -54,6 +55,9 @@ namespace CompSci_NEA.Minigames.Tetris
 
         public override void Update(GameTime gameTime)
         {
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                game.CloseMiniGame(0);
+
             KeyboardState keyboardState = Keyboard.GetState();
 
             //movement and rotation stuff

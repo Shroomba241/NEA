@@ -1,7 +1,10 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using CompSci_NEA.Core;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 
 namespace CompSci_NEA.Tilemap
@@ -102,6 +105,52 @@ namespace CompSci_NEA.Tilemap
                           new WeightedVariant(new Rectangle(64, 32, 16, 16), 2),
                           new WeightedVariant(new Rectangle(128, 32, 16, 16), 1)
                       }) },
+                { 12, new TileType("HauntedSands", false, Color.Lavender,
+                    new List<WeightedVariant>
+                    {
+                        new WeightedVariant(new Rectangle(144, 16, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(160, 16, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(176, 16, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(192, 16, 16, 16), 1)
+                    })},
+                { 13, new TileType("DarkerPlains", false, Color.DarkGreen,
+                    new List<WeightedVariant>
+                    {
+                        new WeightedVariant(new Rectangle(144, 32, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(160, 32, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(176, 32, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(192, 32, 16, 16), 1)
+                    }) },
+                { 14, new TileType("SpookyForest", false, Color.Gray, 
+                    new List<WeightedVariant>
+                    {
+                        new WeightedVariant(new Rectangle(32, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(48, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(64, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(16, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(80, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(96, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(112, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(128, 48, 16, 16), 1)
+                    }) },
+                { 15, new TileType("ScarySnow", false, Color.LightSteelBlue, 
+                    new List<WeightedVariant> 
+                    {
+                        new WeightedVariant(new Rectangle(144, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(160, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(176, 48, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(192, 48, 16, 16), 1)
+                    })},
+                { 16, new TileType("ScorchedLands", false, Color.DarkRed,
+                    new List<WeightedVariant>
+                    {
+                        new WeightedVariant(new Rectangle(32, 64, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(48, 64, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(64, 64, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(16, 64, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(80, 64, 16, 16), 1),
+                        new WeightedVariant(new Rectangle(96, 64, 16, 16), 1)
+                    }) }
             };
 
 

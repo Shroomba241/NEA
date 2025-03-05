@@ -34,9 +34,6 @@ namespace CompSci_NEA.Minigames.Connect4
             int bestMove = -1;
             _transpositionTable.Clear();
 
-            /*if (board.GetValidMoves().Count == board.Columns)
-                return 4;*/
-
             for (int depth = 1; depth <= maxSearchDepth; depth++) //if my evaluation is gppd, then this should return perfect move given enough depth
             {
                 int currentBestMove = -1;
@@ -59,7 +56,21 @@ namespace CompSci_NEA.Minigames.Connect4
             return bestMove;
         }
 
-        private List<int> GetSortedMoves(C4Board board) //put a merge sort or something in this brotha
+        public List<(int move, int score)> EvaluateMoves(C4Board board, int currentPlayer)
+        {
+            List<(int move, int score)> moves = new List<(int, int)>();
+            List<int> validMoves = board.GetValidCols();
+            foreach (int move in validMoves)
+            {
+                board.Play(move, currentPlayer);
+                int score = -Negamax(board, maxSearchDepth - 1, -currentPlayer, int.MinValue, int.MaxValue, currentPlayer);
+                board.Rewind(move, currentPlayer);
+                moves.Add((move, score));
+            }
+            return moves;
+        }
+
+        private List<int> GetSortedMoves(C4Board board)
         {
             List<int> moves = board.GetValidCols();
             int center = board.Cols / 2;
@@ -71,8 +82,7 @@ namespace CompSci_NEA.Minigames.Connect4
         private int Negamax(C4Board board, int depth, int player, int alpha, int beta, int perspective)
         {
             string hash = player.ToString() + board.TTHash();
-            //Console.WriteLine(hash);
-            if (_transpositionTable.TryGetValue(hash, out TTEntry entry) && entry.Depth >= depth) //if the exact situation has been cached,  then you can use it to prune the search.
+            if (_transpositionTable.TryGetValue(hash, out TTEntry entry) && entry.Depth >= depth)
             {
                 if (entry.Flag == BoundType.E)
                     return entry.Score;
@@ -86,7 +96,7 @@ namespace CompSci_NEA.Minigames.Connect4
 
             if (board.CheckWin(-player))
                 return -100000 - depth;
-            if (depth == 0 || board.IsFull()) //so if youre at the maximum depth, or the board is full, then just evaluate and return.
+            if (depth == 0 || board.IsFull())
                 return board.EvaluateBoard(perspective);
 
             int originalAlpha = alpha;
@@ -98,7 +108,7 @@ namespace CompSci_NEA.Minigames.Connect4
                 board.Rewind(move, player);
                 maxScore = Math.Max(maxScore, score);
                 alpha = Math.Max(alpha, maxScore);
-                if (alpha >= beta) //prune the branches where the current score is over the beta threshold
+                if (alpha >= beta)
                     break;
             }
 

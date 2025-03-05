@@ -7,10 +7,10 @@ namespace CompSci_NEA.Minigames.Tetris
 {
     public class Tetromino
     {
-        public Vector2 Position { get; set; }
-        public int[,] Shape { get; set; }
-        public Color TetrominoColour { get; set; }
-        public Texture2D Texture { get; set; } = TextureManager.Tetromino_texture;
+        public Vector2 Position;
+        public int[,] Shape;
+        public Color TetrominoColour;
+        public Texture2D Texture = TextureManager.Tetromino_texture;
 
         private static Random _rnd = new Random();
 
@@ -134,9 +134,9 @@ namespace CompSci_NEA.Minigames.Tetris
                     if (Shape[y, x] == 1)
                     {
                         spriteBatch.Draw(TextureManager.Tetromino_texture,
-                            new Rectangle((int)((Position.X + x + TBoard.X_OFFSET) * TBoard.TileSize),
-                                          (int)((Position.Y + y + TBoard.Y_OFFSET) * TBoard.TileSize),
-                                          TBoard.TileSize, TBoard.TileSize), TetrominoColour);
+                            new Rectangle((int)((Position.X + x + TBoard.X_OFFSET) * TBoard.TILESIZE),
+                                          (int)((Position.Y + y + TBoard.Y_OFFSET) * TBoard.TILESIZE),
+                                          TBoard.TILESIZE, TBoard.TILESIZE), TetrominoColour);
                     }
                 }
             }
@@ -151,9 +151,9 @@ namespace CompSci_NEA.Minigames.Tetris
                     if (Shape[y, x] == 1)
                     {
                         spriteBatch.Draw(TextureManager.Tetromino_texture,
-                            new Rectangle((int)(drawPosition.X + x * TBoard.TileSize),
-                                          (int)(drawPosition.Y + y * TBoard.TileSize),
-                                          TBoard.TileSize, TBoard.TileSize), TetrominoColour);
+                            new Rectangle((int)(drawPosition.X + x * TBoard.TILESIZE),
+                                          (int)(drawPosition.Y + y * TBoard.TILESIZE),
+                                          TBoard.TILESIZE, TBoard.TILESIZE), TetrominoColour);
                     }
                 }
             }

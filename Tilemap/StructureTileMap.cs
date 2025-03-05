@@ -1,7 +1,6 @@
 ﻿using CompSci_NEA.Core;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using CompSci_NEA.WorldGeneration.Structures;
 
@@ -9,14 +8,22 @@ namespace CompSci_NEA.Tilemap
 {
     public class StructureTileMap : BaseTileMap
     {
-        private StoneBridge _stoneBridge;
+        private List<Structure> _structures;
+        public Shop Shop;
 
         public StructureTileMap(GraphicsDevice graphicsDevice, int totalChunksX, int totalChunksY, int seed)
             : base(graphicsDevice, totalChunksX, totalChunksY, seed)
         {
             tileAtlas = TextureManager.ATLAS;
-            _stoneBridge = new StoneBridge(tileAtlas, seed);
-            _stoneBridge.Generate(400 * 48, 400 * 48, 100);
+            _structures = new List<Structure>();
+
+            // Create your structures:
+            StoneBridge stoneBridge = new StoneBridge(tileAtlas, seed);
+            stoneBridge.Generate(400 * 48, 400 * 48, 100);
+            _structures.Add(stoneBridge);
+
+            Shop = new Shop(tileAtlas, new Vector2(390 * 48, 400 * 48));
+            _structures.Add(Shop);
         }
 
         public override byte GenerateTile(int x, int y)
@@ -24,6 +31,7 @@ namespace CompSci_NEA.Tilemap
             return 0;
         }
 
+        // Draw background layer (behind the player)
         public void DrawBackgroundLayer(SpriteBatch spriteBatch, Entities.Player player)
         {
             int chunkX = (int)(player.Position.X / (48 * chunkSize));
@@ -34,30 +42,24 @@ namespace CompSci_NEA.Tilemap
                 {
                     int currentChunkX = chunkX + offsetX;
                     int currentChunkY = chunkY + offsetY;
-                    Rectangle chunkRect = new Rectangle(currentChunkX * chunkSize * 48, currentChunkY * chunkSize * 48, chunkSize * 48, chunkSize * 48);
-                    if (chunks.ContainsKey(new Point(currentChunkX, currentChunkY)))
-                    {
-                        byte[,] chunk = chunks[new Point(currentChunkX, currentChunkY)];
-                        for (int y = 0; y < chunkSize; y++)
-                        {
-                            for (int x = 0; x < chunkSize; x++)
-                            {
-                                byte tileID = chunk[y, x];
-                                if (!tileTypes.ContainsKey(tileID))
-                                    continue;
+                    Rectangle chunkRect = new Rectangle(
+                        currentChunkX * chunkSize * 48,
+                        currentChunkY * chunkSize * 48,
+                        chunkSize * 48,
+                        chunkSize * 48);
 
-                                TileType tileType = tileTypes[tileID];
-                                Vector2 position = new Vector2((currentChunkX * chunkSize + x) * 48, (currentChunkY * chunkSize + y) * 48);
-                                Rectangle sourceRect = tileType.GetEffectiveTextureRegion((int)position.X, (int)position.Y);
-                                spriteBatch.Draw(tileAtlas, position, sourceRect, tileType.Color, 0f, Vector2.Zero, 3.0f, SpriteEffects.None, 0f);
-                            }
-                        }
+                    // Draw the tilemap as before...
+
+                    // Let each structure draw its background part if it intersects this chunk.
+                    foreach (var structure in _structures)
+                    {
+                        structure.DrawBackgroundInRect(spriteBatch, chunkRect);
                     }
-                    _stoneBridge.DrawBackgroundInRect(spriteBatch, chunkRect);
                 }
             }
         }
 
+        // Draw foreground layer (in front of the player)
         public void DrawForegroundLayer(SpriteBatch spriteBatch, Entities.Player player)
         {
             int chunkX = (int)(player.Position.X / (48 * chunkSize));
@@ -68,15 +70,29 @@ namespace CompSci_NEA.Tilemap
                 {
                     int currentChunkX = chunkX + offsetX;
                     int currentChunkY = chunkY + offsetY;
-                    Rectangle chunkRect = new Rectangle(currentChunkX * chunkSize * 48, currentChunkY * chunkSize * 48, chunkSize * 48, chunkSize * 48);
-                    _stoneBridge.DrawForegroundInRect(spriteBatch, chunkRect);
+                    Rectangle chunkRect = new Rectangle(
+                        currentChunkX * chunkSize * 48,
+                        currentChunkY * chunkSize * 48,
+                        chunkSize * 48,
+                        chunkSize * 48);
+
+                    foreach (var structure in _structures)
+                    {
+                        structure.DrawForegroundInRect(spriteBatch, chunkRect);
+                    }
                 }
             }
         }
 
-        public List<Rectangle> StoneBridgeColliders
+        // Gather all collision rectangles from all structures.
+        public List<Rectangle> GetAllColliders()
         {
-            get { return _stoneBridge.GetBottomRailingColliders(); }
+            List<Rectangle> colliders = new List<Rectangle>();
+            foreach (var structure in _structures)
+            {
+                colliders.AddRange(structure.GetColliders());
+            }
+            return colliders;
         }
     }
 }

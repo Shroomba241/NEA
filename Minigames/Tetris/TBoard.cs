@@ -15,10 +15,10 @@ namespace CompSci_NEA.Minigames.Tetris
     {
         public const int X_OFFSET = 4;
         public const int Y_OFFSET = 2;
-        public const int TileSize = 32;
-        public const int Width = 10;
-        public const int Height = 20;
-        private GridCell[,] _grid = new GridCell[Height, Width];
+        public const int TILESIZE = 32;
+        public const int WIDTH = 10;
+        public const int HEIGHT = 20;
+        private GridCell[,] _grid = new GridCell[HEIGHT, WIDTH];
 
         public bool IsValidPosition(Tetromino piece, int offsetX, int offsetY)
         {
@@ -31,7 +31,7 @@ namespace CompSci_NEA.Minigames.Tetris
                         int boardX = (int)piece.Position.X + x + offsetX;
                         int boardY = (int)piece.Position.Y + y + offsetY;
 
-                        if (boardX < 0 || boardX >= Width || boardY < 0 || boardY >= Height)
+                        if (boardX < 0 || boardX >= WIDTH || boardY < 0 || boardY >= HEIGHT)
                             return false;
 
                         if (_grid[boardY, boardX].Type != 0)
@@ -53,7 +53,7 @@ namespace CompSci_NEA.Minigames.Tetris
                         int gridX = (int)piece.Position.X + x;
                         int gridY = (int)piece.Position.Y + y;
 
-                        if (gridX >= 0 && gridX < Width && gridY >= 0 && gridY < Height)
+                        if (gridX >= 0 && gridX < WIDTH && gridY >= 0 && gridY < HEIGHT)
                             _grid[gridY, gridX] = new GridCell(piece.Shape[y, x], piece.TetrominoColour);
                         else
                             Console.WriteLine($"attempted OOB placement at ({gridX}, {gridY})");
@@ -65,10 +65,10 @@ namespace CompSci_NEA.Minigames.Tetris
         public int ClearLines()
         {
             int n = 0;
-            for (int y = Height - 1; y >= 0; y--)
+            for (int y = HEIGHT - 1; y >= 0; y--)
             {
                 bool isLineFull = true;
-                for (int x = 0; x < Width; x++)
+                for (int x = 0; x < WIDTH; x++)
                 {
                     if (_grid[y, x].Type == 0)
                     {
@@ -82,12 +82,12 @@ namespace CompSci_NEA.Minigames.Tetris
                     n++;
                     for (int newY = y; newY > 0; newY--)
                     {
-                        for (int x = 0; x < Width; x++)
+                        for (int x = 0; x < WIDTH; x++)
                         {
                             _grid[newY, x] = _grid[newY - 1, x];
                         }
                     }
-                    for (int x = 0; x < Width; x++)
+                    for (int x = 0; x < WIDTH; x++)
                         _grid[0, x] = new GridCell(0, Color.Transparent);
 
                     y++;
@@ -98,14 +98,14 @@ namespace CompSci_NEA.Minigames.Tetris
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            for (int y = 0; y < Height; y++)
+            for (int y = 0; y < HEIGHT; y++)
             {
-                for (int x = 0; x < Width; x++)
+                for (int x = 0; x < WIDTH; x++)
                 {
                     GridCell cell = _grid[y, x];
                     if (cell.Type != 0)
                     {
-                        spriteBatch.Draw(TextureManager.Tetromino_texture, new Vector2((x + X_OFFSET) * TileSize, (y + Y_OFFSET) * TileSize), cell.Colour);
+                        spriteBatch.Draw(TextureManager.Tetromino_texture, new Vector2((x + X_OFFSET) * TILESIZE, (y + Y_OFFSET) * TILESIZE), cell.Colour);
                     }
                 }
             }

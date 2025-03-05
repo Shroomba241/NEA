@@ -33,9 +33,9 @@ namespace CompSci_NEA.Scenes
         private float _chunkHeight = 768f / 18f;
         public List<Rectangle> ExtraColliders { get; set; } = new List<Rectangle>();
 
-        public static bool ShowCollisionDebug = false;
+        public static bool ShowCollisionDebug = true;
         private float _mapRegenTimer = 0f;
-        private const float REGEN_INTERVAL = 3f;
+        private const float REGEN_INTERVAL = 1.5f;
 
         private HUDManager _hudManager;
 
@@ -47,6 +47,7 @@ namespace CompSci_NEA.Scenes
 
         public override void LoadContent()
         {
+            NoiseGenerator.SetSeed(SEED);
             _font = game.Content.Load<SpriteFont>("DefaultFont");
             _simplePerformance = new GUI.SimplePerformance(_font);
 
@@ -56,9 +57,9 @@ namespace CompSci_NEA.Scenes
 
             _foliageManager = new FoliageManager(game, _tileMapVisual, SEED);
 
-            _tileMapCollisions.ExtraColliders.AddRange(_structureTileMap.StoneBridgeColliders);
+            _tileMapCollisions.ExtraColliders.AddRange(_structureTileMap.GetAllColliders());
 
-            _player = new Player(game.GraphicsDevice, new Vector2(150 * 48, 384 * 48));
+            _player = new Player(game.GraphicsDevice, new Vector2(150 * 48, 384 * 48), TextureManager.PlayerMoveAtlas);
             _camera = new Camera();
 
             game.pauseCurrentSceneUpdating = false;
@@ -71,7 +72,7 @@ namespace CompSci_NEA.Scenes
             _hudManager = new HUDManager();
             _hudManager.LoadContent();
 
-            game.StartMiniGame(SubGameState.Connect4);
+            //game.StartMiniGame(SubGameState.Maze);
         }
 
         public override void Update(GameTime gameTime)
@@ -86,17 +87,20 @@ namespace CompSci_NEA.Scenes
                 _mapRegenTimer = 0f;
                 _mapTexture = _tileMapVisual.UpdateMapTexture(game.GraphicsDevice);
             }
-
-            /*if (!game.InMiniGame && ks.IsKeyDown(Keys.E))
-            {
-                game.StartMiniGame(SubGameState.Tetris);
-                game.InMiniGame = true;
-            }*/
-
             _simplePerformance.Update(gameTime);
-            _player.Update(_tileMapCollisions);
+            _player.Update(_tileMapCollisions, gameTime);
             _camera.Update(_player.Position);
+
+            if (ks.IsKeyDown(Keys.E))
+            {
+                float distance = Vector2.Distance(_player.Position, _structureTileMap.Shop.GetInteractionPoint());
+                if (distance < 100f)
+                {
+                    _structureTileMap.Shop.Interact(game);
+                }
+            }
         }
+
 
         /*private void RegenerateMap()
         {
