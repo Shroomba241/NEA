@@ -10,7 +10,7 @@ namespace CompSci_NEA.Minigames.Connect4
         UB //upperbound
     }
 
-    //Key optimisation - stores a circumstance which to improve search efficiency by reducing redundant processing.
+    //key optimisation - stores a circumstance which to improve search efficiency by reducing redundant processing.
     public struct TTEntry
     {
         public int Depth;

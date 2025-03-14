@@ -17,7 +17,7 @@ namespace CompSci_NEA.Entities
         private Vector2 _velocity;
         private float _acceleration = 8f;
         private float _deceleration = 12f;
-        private float _maxSpeed = 15f;
+        private float _maxSpeed = 10f;
         private int _width = 50;
         private int _height = 100;
         private Texture2D _moveAtlas;
@@ -45,14 +45,13 @@ namespace CompSci_NEA.Entities
 
         private void InitializeAnimations()
         {
-            float idleFrameTime = 1f;
-            float walkFrameTime = 0.1f;
+            float walkFrameTime = 0.08f;
             _idleAnimations = new Dictionary<Direction, Animation>
             {
-                { Direction.Right, new Animation(_moveAtlas, 32, 32, 1, idleFrameTime, 0, 0, false) },
-                { Direction.Left, new Animation(_moveAtlas, 32, 32, 1, idleFrameTime, 0, 1, false) },
-                { Direction.Down, new Animation(_moveAtlas, 32, 32, 1, idleFrameTime, 0, 2, false) },
-                { Direction.Up, new Animation(_moveAtlas, 32, 32, 1, idleFrameTime, 0, 3, false) }
+                { Direction.Right, new Animation(_moveAtlas, 32, 32, 1, 1, 0, 0, false) },
+                { Direction.Left, new Animation(_moveAtlas, 32, 32, 1, 1, 0, 1, false) },
+                { Direction.Down, new Animation(_moveAtlas, 32, 32, 1, 1, 0, 2, false) },
+                { Direction.Up, new Animation(_moveAtlas, 32, 32, 1, 1, 0, 3, false) }
             };
             _walkAnimations = new Dictionary<Direction, Animation>
             {

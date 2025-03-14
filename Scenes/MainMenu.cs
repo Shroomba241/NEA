@@ -5,6 +5,7 @@ using CompSci_NEA.Core;
 using CompSci_NEA.Entities;
 using System;
 using System.IO;
+using CompSci_NEA.Database;
 
 namespace CompSci_NEA.Scenes
 {
@@ -230,6 +231,7 @@ namespace CompSci_NEA.Scenes
         private void UpdateSlotUI(GUI.Button slotButton, GUI.Button deleteButton, int slotIndex)
         {
             string filePath = GetSaveFilePath(slotIndex);
+            Console.WriteLine(filePath);
             if (File.Exists(filePath))
             {
                 slotButton.SetText($"Slot {slotIndex + 1}: Load Game");
@@ -246,19 +248,53 @@ namespace CompSci_NEA.Scenes
             }
         }
 
+        private string GetUserSaveDirectory()
+        {
+            string userFolder = Path.Combine(_saveDirectory, Main.LoggedInUserID.ToString());
+            if (!Directory.Exists(userFolder))
+            {
+                Console.WriteLine("creating new usersavedir");
+                Directory.CreateDirectory(userFolder);
+            }
+            return userFolder;
+        }
+
         private string GetSaveFilePath(int slotIndex)
         {
-            return Path.Combine(_saveDirectory, $"save{slotIndex}.sav");
+            string userFolder = GetUserSaveDirectory();
+            return Path.Combine(userFolder, $"slot{slotIndex + 1}.json");
         }
 
         private void LoadGame(string filePath)
         {
             Console.WriteLine($"Loading game from: {filePath}");
+            GameSave loadedSave = SaveManager.LoadGame(filePath);
+            if (loadedSave != null)
+            {
+                Console.WriteLine("Game loaded successfully!");
+                game.ChangeState(GameState.DEBUG, loadedSave);
+            }
+            else
+            {
+                throw new FileNotFoundException("failed to load save file");
+            }
         }
 
         private void StartNewGame(int slotIndex)
         {
             Console.WriteLine($"Starting a new game in slot {slotIndex + 1}");
+            GameSave newSave = GameSave.CreateDefaultSave((slotIndex + 1).ToString());
+            string filePath = GetSaveFilePath(slotIndex);
+            SaveManager.SaveGame(newSave, filePath);
+            Console.WriteLine($"New game saved at: {filePath}");
+            int userId = Main.LoggedInUserID;
+            int worldId = 1; //UPDATE LATER
+            int locationX = 0;
+            int locationY = 0;
+            int coins = 100;
+            DbFunctions db = new DbFunctions();
+            db.UpdateUserWorldSavesData(userId, worldId, locationX, locationY, coins, filePath);
+            UpdateSaveSlotUI();
         }
 
         private void DeleteSave(int slotIndex)

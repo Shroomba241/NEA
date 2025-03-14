@@ -37,17 +37,18 @@ namespace CompSci_NEA.Database
                     );";
 
                 string createUserWorldSaveTable = @"
-                CREATE TABLE IF NOT EXISTS UserWorldSaves (
-                    user_id INTEGER,
-                    world_id INTEGER,
-                    last_played TEXT DEFAULT CURRENT_TIMESTAMP,
-                    location_x INTEGER DEFAULT 0,
-                    location_y INTEGER DEFAULT 0,
-                    coins INTEGER DEFAULT 100,
-                    PRIMARY KEY (user_id, world_id),
-                    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-                    FOREIGN KEY (world_id) REFERENCES Worlds(world_id)
-                );";
+                    CREATE TABLE IF NOT EXISTS UserWorldSaves (
+                        user_id INTEGER,
+                        world_id INTEGER,
+                        last_played TEXT DEFAULT CURRENT_TIMESTAMP,
+                        location_x INTEGER DEFAULT 0,
+                        location_y INTEGER DEFAULT 0,
+                        coins INTEGER DEFAULT 100,
+                        save_path TEXT NOT NULL,
+                        PRIMARY KEY (user_id, world_id),
+                        FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+                        FOREIGN KEY (world_id) REFERENCES Worlds(world_id)
+                    );";
 
                 string createTetrisSessionsTable = @"
                     CREATE TABLE IF NOT EXISTS TetrisSessions (

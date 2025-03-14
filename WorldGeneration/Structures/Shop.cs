@@ -1,4 +1,5 @@
 ﻿using CompSci_NEA.Scenes;
+using CompSci_NEA.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -19,9 +20,9 @@ namespace CompSci_NEA.WorldGeneration.Structures
             _textureRegion = new Rectangle(0, 272, 48, 32);
         }
 
-        public void Interact(Main game)
+        public void Interact(Main game, GameSave save)
         {
-            game.StartMiniGame(Core.SubGameState.ShopMenu);
+            game.StartMiniGame(Core.SubGameState.ShopMenu, save);
         }
 
         public Vector2 GetInteractionPoint()

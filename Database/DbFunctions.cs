@@ -244,6 +244,51 @@ namespace CompSci_NEA.Database
             }
         }
 
+        public void UpdateUserWorldSavesData(int userId, int worldId, int location_x, int location_y, int coins, string savePath)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "INSERT OR REPLACE INTO UserWorldSaves (user_id, world_id, last_played, location_x, location_y, coins, save_path) " +
+                               "VALUES (@userId, @worldId, CURRENT_TIMESTAMP, @location_x, @location_y, @coins, @savePath)";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@worldId", worldId);
+                    cmd.Parameters.AddWithValue("@location_x", location_x);
+                    cmd.Parameters.AddWithValue("@location_y", location_y);
+                    cmd.Parameters.AddWithValue("@coins", coins);
+                    cmd.Parameters.AddWithValue("@savePath", savePath);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public (int locationX, int locationY, int coins, string savePath) GetUserWorldSave(int userId, int worldId)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "SELECT location_x, location_y, coins, save_path FROM UserWorldSaves WHERE user_id = @userId AND world_id = @worldId";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@worldId", worldId);
+                    using (SQLiteDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int locationX = Convert.ToInt32(reader["location_x"]);
+                            int locationY = Convert.ToInt32(reader["location_y"]);
+                            int coins = Convert.ToInt32(reader["coins"]);
+                            string savePath = reader["save_path"].ToString();
+                            return (locationX, locationY, coins, savePath);
+                        }
+                    }
+                }
+            }
+            return (0, 0, 0, null); // default values if no record is found
+        }
+
+
         //-------------------------------------------------------------------------------------------
         static void AddTestEntry(SQLiteConnection conn) //DEBUG
         {

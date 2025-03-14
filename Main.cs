@@ -41,7 +41,7 @@ namespace CompSci_NEA
             _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
 
-            CurrentState = Core.GameState.DEBUG;
+            CurrentState = Core.GameState.MainMenu;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
 
@@ -72,14 +72,14 @@ namespace CompSci_NEA
             base.Draw(gameTime);
         }
 
-        public void ChangeState(GameState newState)
+        public void ChangeState(GameState newState, GameSave save = null)
         {
             PauseCurrentSceneUpdateing = true;
 
             Scene newScene = newState switch
             {
                 GameState.Login => new LoginScene(this),
-                GameState.DEBUG => new MOVEDEBUGTEST(this),
+                GameState.DEBUG => new MOVEDEBUGTEST(this, save),
                 GameState.AdminView => new AdminView(this),
                 GameState.MainMenu => new MainMenu(this),
                 _ => null
@@ -89,14 +89,14 @@ namespace CompSci_NEA
                 _sceneStack.ChangeScene(newScene);
         }
 
-        public void StartMiniGame(SubGameState newState)
+        public void StartMiniGame(SubGameState newState, GameSave save = null)
         {
             Scene subScene = newState switch
             {
                 SubGameState.Tetris => new Minigames.Tetris.TetrisGame(this),
                 SubGameState.Connect4 => new Minigames.Connect4.Connect4Game(this),
                 SubGameState.Maze => new Minigames.Maze.MazeGame(this),
-                SubGameState.ShopMenu => new ShopMenu(this),
+                SubGameState.ShopMenu => new ShopMenu(this, save),
                 _ => null
             };
             _sceneStack.PushScene(subScene);
