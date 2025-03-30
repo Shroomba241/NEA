@@ -17,9 +17,7 @@ namespace CompSci_NEA.Database
         {
             using (SQLiteConnection conn = OpenConnection())
             {
-                //AddTestEntry(conn);
                 EnsureUser1IsAdmin();
-                //DisplayAllUsers(conn);
             }
 
             Console.WriteLine("Done!");
@@ -230,6 +228,39 @@ namespace CompSci_NEA.Database
             return data;
         }
 
+        public List<string[]> GetTetrisData(int userId)
+        {
+            List<string[]> data = new List<string[]>();
+
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = @"
+                    SELECT session_id, user_id, username, score 
+                    FROM TetrisSessions 
+                    WHERE user_id = @userId 
+                    ORDER BY score DESC;
+                ";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    using (SQLiteDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string sessionId = reader["session_id"].ToString();
+                            string uid = reader["user_id"].ToString();
+                            string username = reader["username"].ToString();
+                            string score = reader["score"].ToString();
+                            data.Add(new string[] { sessionId, uid, username, score});
+                        }
+                    }
+                }
+            }
+
+            return data;
+        }
+
         public void UpdateUserData(int userId, string columnName, string newValue)
         {
             using (SQLiteConnection conn = OpenConnection())
@@ -285,7 +316,33 @@ namespace CompSci_NEA.Database
                     }
                 }
             }
-            return (0, 0, 0, null); // default values if no record is found
+            return (0, 0, 0, null);
+        }
+
+        public void DeleteUser(int userId)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "DELETE FROM Users WHERE user_id = @userId";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteTetrisSession(int sessionId)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "DELETE FROM TetrisSessions WHERE session_id = @sessionId";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@sessionId", sessionId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
 

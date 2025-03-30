@@ -41,7 +41,7 @@ namespace CompSci_NEA
             _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
 
-            CurrentState = Core.GameState.MainMenu;
+            CurrentState = Core.GameState.AdminView;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
 

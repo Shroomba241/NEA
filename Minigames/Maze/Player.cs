@@ -2,6 +2,10 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using System;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CompSci_NEA.Minigames.Maze
 {
@@ -83,7 +87,7 @@ namespace CompSci_NEA.Minigames.Maze
                 {
                     if (r >= 0 && r < _grid.Rows && c >= 0 && c < _grid.Cols)
                     {
-                        if (_grid.MazeData[r, c] == 1)
+                        if (_grid.MazeGrid[r, c] == 1)
                         {
                             Rectangle cellRect = new Rectangle(_grid.OffsetX + c * _grid.CellSize, _grid.OffsetY + r * _grid.CellSize, _grid.CellSize, _grid.CellSize);
                             if (newRect.Intersects(cellRect))

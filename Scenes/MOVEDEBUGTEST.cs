@@ -68,13 +68,8 @@ namespace CompSci_NEA.Scenes
                 save.Minigames = new ExistingMinigames { Minigames = new List<MinigameInfo>() };
             }
 
-            // Tell the foliage manager to use saved minigame data.
             _foliageManager.UseSavedMinigames = true;
-
-            // Instead of clearing all foliage, remove only minigame foliage.
             _foliageManager.ClearMinigameFoliage();
-
-            // Now load saved minigame data, or generate new minigame info if none exists.
             if (save.Minigames.Minigames.Count > 0)
             {
                 _foliageManager.LoadMinigamesFromSave(save);
@@ -105,6 +100,8 @@ namespace CompSci_NEA.Scenes
 
             _hudManager = new HUDManager();
             _hudManager.LoadContent();
+
+            game.StartMiniGame(SubGameState.Maze);
         }
 
         public override void Update(GameTime gameTime)
