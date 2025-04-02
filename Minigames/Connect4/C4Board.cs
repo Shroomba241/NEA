@@ -229,5 +229,15 @@ namespace CompSci_NEA.Minigames.Connect4
                 }
             }
         }
+
+        public C4Board Clone()
+        {
+            C4Board clone = new C4Board(this.Cols, this.Rows);
+            clone._bitboards[0] = this._bitboards[0];
+            clone._bitboards[1] = this._bitboards[1];
+            clone._mask = this._mask;
+            clone.heights = (int[])this.heights.Clone();
+            return clone;
+        }
     }
 }

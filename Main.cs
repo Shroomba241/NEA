@@ -16,6 +16,7 @@ namespace CompSci_NEA
         public bool PauseCurrentSceneUpdateing;
         public static string LoggedInUsername = "Shroomba";
         public static int LoggedInUserID = 1;
+        public static int CurrentWorldID;
         public bool InMiniGame = false;
 
         private SceneStack _sceneStack;
@@ -41,7 +42,7 @@ namespace CompSci_NEA
             _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
 
-            CurrentState = Core.GameState.AdminView;
+            CurrentState = Core.GameState.MainMenu;
             _createDB = new Database.CreateDB();
             _createDB.CreateDatabase();
 

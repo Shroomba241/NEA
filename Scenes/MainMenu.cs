@@ -50,8 +50,8 @@ namespace CompSci_NEA.Scenes
         private RenderTarget2D _blurTarget;
         private Effect _blurEffect;
 
-        //save game directory (NOT YET DONE)
         private string _saveDirectory = "Saves";
+        private int worldID;
 
         private Main game;
 
@@ -271,7 +271,15 @@ namespace CompSci_NEA.Scenes
             GameSave loadedSave = SaveManager.LoadGame(filePath);
             if (loadedSave != null)
             {
-                Console.WriteLine("Game loaded successfully!");
+                DbFunctions db = new DbFunctions();
+                int worldId = db.GetWorldIdFromSavePath(Main.LoggedInUserID, filePath);
+                if (worldId == -1)
+                {
+                    Console.WriteLine("error retrieving worldid");
+                    return;
+                }
+                var (seed, creation_date, difficulty) = db.GetWorldData(worldId);
+                MOVEDEBUGTEST.SEED = seed;
                 game.ChangeState(GameState.DEBUG, loadedSave);
             }
             else
@@ -287,12 +295,12 @@ namespace CompSci_NEA.Scenes
             string filePath = GetSaveFilePath(slotIndex);
             SaveManager.SaveGame(newSave, filePath);
             Console.WriteLine($"New game saved at: {filePath}");
+            DbFunctions db = new DbFunctions();
             int userId = Main.LoggedInUserID;
-            int worldId = 1; //UPDATE LATER
+            int worldId = db.CreateNewWorld();
             int locationX = 0;
             int locationY = 0;
             int coins = 100;
-            DbFunctions db = new DbFunctions();
             db.UpdateUserWorldSavesData(userId, worldId, locationX, locationY, coins, filePath);
             UpdateSaveSlotUI();
         }

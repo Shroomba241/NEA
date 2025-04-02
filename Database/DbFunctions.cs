@@ -20,7 +20,7 @@ namespace CompSci_NEA.Database
                 EnsureUser1IsAdmin();
             }
 
-            Console.WriteLine("Done!");
+            Console.WriteLine("Done");
         }
 
         private SQLiteConnection OpenConnection()
@@ -203,6 +203,27 @@ namespace CompSci_NEA.Database
             }
         }
 
+        public int CreateNewWorld()
+        {
+            int seed = new Random().Next(10000, 100000);
+            int difficulty = new Random().Next(20, 31);
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = @"
+                     INSERT INTO Worlds (seed, difficulty)
+                     VALUES (@seed, @difficulty);
+                     SELECT last_insert_rowid();
+                 ";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@seed", seed.ToString());
+                    cmd.Parameters.AddWithValue("@difficulty", difficulty);
+                    int id = Convert.ToInt32(cmd.ExecuteScalar());
+                    return id;
+                }
+            }
+        }
+
         public List<string[]> GetAllUserData()
         {
             List<string[]> data = new List<string[]>();
@@ -279,8 +300,8 @@ namespace CompSci_NEA.Database
         {
             using (SQLiteConnection conn = OpenConnection())
             {
-                string query = "INSERT OR REPLACE INTO UserWorldSaves (user_id, world_id, last_played, location_x, location_y, coins, save_path) " +
-                               "VALUES (@userId, @worldId, CURRENT_TIMESTAMP, @location_x, @location_y, @coins, @savePath)";
+                string query = @"INSERT OR REPLACE INTO UserWorldSaves (user_id, world_id, last_played, location_x, location_y, coins, save_path)
+                               VALUES (@userId, @worldId, CURRENT_TIMESTAMP, @location_x, @location_y, @coins, @savePath)";
                 using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@userId", userId);
@@ -317,6 +338,48 @@ namespace CompSci_NEA.Database
                 }
             }
             return (0, 0, 0, null);
+        }
+
+        public (int seed, string creationDate, int difficulty) GetWorldData(int worldID)
+        {
+            using (SQLiteConnection connn = OpenConnection()) 
+            {
+                string query = "SELECT seed, creation_date, difficulty FROM Worlds WHERE world_id = @worldID";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, connn))
+                {
+                    cmd.Parameters.AddWithValue("@worldID", worldID);
+                    using (SQLiteDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int seed = Convert.ToInt32(reader["seed"]);
+                            string creationDate = reader["creation_date"].ToString();
+                            int difficulty = Convert.ToInt32(reader["difficulty"]);
+                            return (seed, creationDate, difficulty);
+                        }
+                    }
+                }
+            }
+            return (0, null, 0);
+        }
+
+        public int GetWorldIdFromSavePath(int userId, string savePath)
+        {
+            using (SQLiteConnection conn = OpenConnection())
+            {
+                string query = "SELECT world_id FROM UserWorldSaves WHERE user_id = @userId AND save_path = @savePath";
+                using (SQLiteCommand cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    cmd.Parameters.AddWithValue("@savePath", savePath);
+                    object result = cmd.ExecuteScalar();
+                    if (result != null)
+                    {
+                        return Convert.ToInt32(result);
+                    }
+                }
+            }
+            return -1;
         }
 
         public void DeleteUser(int userId)

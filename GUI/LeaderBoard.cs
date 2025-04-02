@@ -6,8 +6,7 @@ using System.Data.SQLite;
 using CompSci_NEA.Database;
 
 //This file is super patchy. its basically just the data table used in the AdminView, but manipulated in a way so that it looks like a leaderboard.
-//However, this should work for all leaderboards since "username", "score", and "age" are all verry common
-//Later, move the LoadData to its right position within the minigame, and make it so it will work for future minigmes.
+//Later, move the LoadData to its right position within the minigame, and make it so it will work for future minigmes if i choose to put leaderboards in them depending on what i do.
 
 namespace CompSci_NEA.GUI
 {
@@ -24,7 +23,7 @@ namespace CompSci_NEA.GUI
             this.pageIndicatorText.UpdateContent(string.Empty);
         }
 
-        private static List<string[]> LoadData()
+        public static List<string[]> LoadData()
         {
             List<string[]> rows = new List<string[]>();
             using (SQLiteConnection conn = new SQLiteConnection("Data Source=database.db;Version=3;"))
@@ -51,15 +50,14 @@ namespace CompSci_NEA.GUI
             return rows;
         }
 
-        //Could change to return "mins and seconds", "hrs and mins", "days and hrs"
         private static string FormatTimeSpan(TimeSpan ts)
         {
             if (ts.TotalDays >= 1)
-                return $"{(int)ts.TotalDays} days ago";
+                return $"{(int)ts.TotalDays} days";
             else if (ts.TotalHours >= 1)
-                return $"{(int)ts.TotalHours} hrs ago";
+                return $"{(int)ts.TotalHours} hours";
             else if (ts.TotalMinutes >= 1)
-                return $"{(int)ts.TotalMinutes} mins ago";
+                return $"{(int)ts.TotalMinutes} minutes";
             else
                 return "Just now";
         }

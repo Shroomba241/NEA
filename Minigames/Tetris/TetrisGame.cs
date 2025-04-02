@@ -1,4 +1,5 @@
 ﻿using CompSci_NEA.Core;
+using CompSci_NEA.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -29,6 +30,8 @@ namespace CompSci_NEA.Minigames.Tetris
         private int _score = 0;
         private int _moveHDirection = 0;
         private float _moveHRepeatTimer = 0f;
+        private bool _gameOver = false;
+        private string _leaderboardMessage = "";
 
         private const float MoveStartDelay = 0.2f;
         private const float MoveRepeatDelay = 0.05f;
@@ -183,6 +186,13 @@ namespace CompSci_NEA.Minigames.Tetris
                 }
             }
 
+            if (_gameOver)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Enter))
+                    game.CloseMiniGame(ShmackInc);
+                return;
+            }
+
             _lastKeyPressed = keyboardState.GetPressedKeys().Length > 0 ? keyboardState.GetPressedKeys()[0] : Keys.None;
         }
 
@@ -210,13 +220,56 @@ namespace CompSci_NEA.Minigames.Tetris
                 _tetrominoQueue[1].DrawAt(spriteBatch, new Vector2(480, 250));
 
             spriteBatch.End();
+
+            if (_gameOver)
+            {
+                spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+                spriteBatch.Draw(_debugBG, new Rectangle(0, 0, 1920, 1080), Color.Black * 0.8f);
+
+                Text gameOverText1 = new Text(TextureManager.DefaultFont, "Game Over!", new Vector2(500, 400), Color.White, 3f);
+                Text gameOverText2 = new Text(TextureManager.DefaultFont, $"Shmacks Earned: {ShmackInc}", new Vector2(500, 470), Color.LightGreen, 3f);
+                Text gameOverText3 = new Text(TextureManager.DefaultFont, "Press ENTER to exit", new Vector2(500, 650), Color.Gray, 3f);
+                Text gameOverText4 = new Text(TextureManager.DefaultFont, _leaderboardMessage, new Vector2(500, 540), Color.Gold, 2.5f);
+
+                gameOverText1.Draw(spriteBatch);
+                gameOverText2.Draw(spriteBatch);
+                gameOverText3.Draw(spriteBatch);
+                gameOverText4.Draw(spriteBatch);
+
+                spriteBatch.End();
+            }
         }
 
         private void ManageYetAnotherLoss()
         {
+            _gameOver = true;
             Database.DbFunctions db = new Database.DbFunctions();
             db.AddTetrisEntry(Main.LoggedInUserID, Main.LoggedInUsername, _score);
-            game.CloseMiniGame(ShmackInc);
+            List<string[]> leaderboardData = CompSci_NEA.GUI.Leaderboard.LoadData();
+            int place = -1;
+            for (int i = 0; i < leaderboardData.Count; i++)
+            {
+                int score = int.Parse(leaderboardData[i][0]);
+
+                if (score == _score)
+                {
+                    place = i + 1;
+                    break;
+                }
+            }
+
+            if (place > 0)
+            {
+                string suffix = (place == 1) ? "st" : (place == 2) ? "nd" : (place == 3) ? "rd" : "th";
+                _leaderboardMessage = $"You placed {place}{suffix} on the leaderboard.";
+            }
+            else
+            {
+                _leaderboardMessage = "You didn't make the cut :(";
+            }
+
+            //game.CloseMiniGame(ShmackInc);
         }
 
 

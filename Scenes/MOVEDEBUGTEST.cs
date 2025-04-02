@@ -16,6 +16,7 @@ namespace CompSci_NEA.Scenes
     public class MOVEDEBUGTEST : Scene
     {
         public static int SEED = 4717;
+        //public static int SEED;
         private Main game;
         private GameSave save;
         private Player _player;
@@ -68,15 +69,17 @@ namespace CompSci_NEA.Scenes
                 save.Minigames = new ExistingMinigames { Minigames = new List<MinigameInfo>() };
             }
 
-            _foliageManager.UseSavedMinigames = true;
-            _foliageManager.ClearMinigameFoliage();
-            if (save.Minigames.Minigames.Count > 0)
+            if (save.Minigames.Minigames.Count == 0)
             {
-                _foliageManager.LoadMinigamesFromSave(save);
+                _foliageManager.UseSavedMinigames = false;
+                _foliageManager.ClearMinigameFoliage();
+                save.Minigames.Minigames = _foliageManager.GenerateAllMinigameInfo();
             }
             else
             {
-                save.Minigames.Minigames = _foliageManager.GenerateAllMinigameInfo();
+                _foliageManager.UseSavedMinigames = true;
+                _foliageManager.ClearMinigameFoliage();
+                _foliageManager.LoadMinigamesFromSave(save);
             }
 
             DbFunctions db = new DbFunctions();
@@ -101,7 +104,7 @@ namespace CompSci_NEA.Scenes
             _hudManager = new HUDManager();
             _hudManager.LoadContent();
 
-            game.StartMiniGame(SubGameState.Maze);
+            //game.StartMiniGame(SubGameState.Connect4);
         }
 
         public override void Update(GameTime gameTime)
