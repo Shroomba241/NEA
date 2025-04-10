@@ -18,8 +18,7 @@ namespace CompSci_NEA
         public static int LoggedInUserID = 1;
         public static int CurrentWorldID;
         public bool InMiniGame = false;
-
-        private SceneStack _sceneStack;
+        public SceneStack SceneStack;
 
         private Database.DbFunctions _dbFunctions;
         private Database.CreateDB _createDB;
@@ -31,7 +30,7 @@ namespace CompSci_NEA
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            _sceneStack = new SceneStack(this);
+            SceneStack = new SceneStack(this);
         }
 
         protected override void Initialize()
@@ -62,14 +61,14 @@ namespace CompSci_NEA
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();*/
 
-            _sceneStack.Update(gameTime);
+            SceneStack.Update(gameTime);
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _sceneStack.Draw(_spriteBatch);
+            SceneStack.Draw(_spriteBatch);
             base.Draw(gameTime);
         }
 
@@ -87,7 +86,7 @@ namespace CompSci_NEA
             };
 
             if (newScene != null)
-                _sceneStack.ChangeScene(newScene);
+                SceneStack.ChangeScene(newScene);
         }
 
         public void StartMiniGame(SubGameState newState, GameSave save = null)
@@ -100,14 +99,14 @@ namespace CompSci_NEA
                 SubGameState.ShopMenu => new ShopMenu(this, save),
                 _ => null
             };
-            _sceneStack.PushScene(subScene);
+            SceneStack.PushScene(subScene);
         }
 
         public void CloseMiniGame(int reward)
         {
-            _sceneStack.PopScene();
+            SceneStack.PopScene();
 
-            ((MOVEDEBUGTEST)_sceneStack.CurrentScene).UpdateShmacks(reward);
+            ((MOVEDEBUGTEST)SceneStack.CurrentScene).UpdateShmacks(reward);
         }
     }
 }

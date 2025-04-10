@@ -11,6 +11,7 @@ namespace CompSci_NEA.Core
 {
     public class GameSave
     {
+        public int PodiumGoalRemaining { get; set; }
         public string Slot {  get; set; }
         public ShopSave ShopInventory { get; set; }
         public InventorySave PlayerInventory { get; set; }
@@ -21,14 +22,20 @@ namespace CompSci_NEA.Core
             return new GameSave
             {
                 Slot = $"slot{slot}.json",
+                PodiumGoalRemaining = 9999,
                 ShopInventory = new ShopSave
                 {
+                    BoughtItems = new List<ShopItemSave>(),
                     AvailableItems = new List<ShopItemSave>
                     {
                         new ShopItemSave { Name = "Map", Price = 5, Icon = "Shmack" },
-                        new ShopItemSave { Name = "Rubbish", Price = 500, Icon = "Shmack" }
+                        new ShopItemSave { Name = "Key 1", Price = 15, Icon = "Padlock" }
                     },
-                    PendingItems = new List<ShopItemSave>()
+                    PendingItems = new List<ShopItemSave>
+                    {
+                        new ShopItemSave { Name = "Key 2", Price = 30, Icon = "Padlock" }
+                        //new ShopItemSave { Name = "Dash Boots", Price = 15, Icon = "Padlock" }
+                    }
                 },
                 PlayerInventory = new InventorySave
                 {
@@ -44,6 +51,7 @@ namespace CompSci_NEA.Core
 
     public class ShopSave
     {
+        public List<ShopItemSave> BoughtItems { get; set; }
         public List<ShopItemSave> AvailableItems { get; set; }
         public List<ShopItemSave> PendingItems { get; set; }
     }

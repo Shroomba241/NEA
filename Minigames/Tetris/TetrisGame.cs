@@ -243,30 +243,33 @@ namespace CompSci_NEA.Minigames.Tetris
 
         private void ManageYetAnotherLoss()
         {
-            _gameOver = true;
-            Database.DbFunctions db = new Database.DbFunctions();
-            db.AddTetrisEntry(Main.LoggedInUserID, Main.LoggedInUsername, _score);
-            List<string[]> leaderboardData = CompSci_NEA.GUI.Leaderboard.LoadData();
-            int place = -1;
-            for (int i = 0; i < leaderboardData.Count; i++)
+            if (!_gameOver)
             {
-                int score = int.Parse(leaderboardData[i][0]);
-
-                if (score == _score)
+                _gameOver = true;
+                Database.DbFunctions db = new Database.DbFunctions();
+                db.AddTetrisEntry(Main.LoggedInUserID, Main.LoggedInUsername, _score);
+                List<string[]> leaderboardData = CompSci_NEA.GUI.Leaderboard.LoadData();
+                int place = -1;
+                for (int i = 0; i < leaderboardData.Count; i++)
                 {
-                    place = i + 1;
-                    break;
-                }
-            }
+                    int score = int.Parse(leaderboardData[i][0]);
 
-            if (place > 0)
-            {
-                string suffix = (place == 1) ? "st" : (place == 2) ? "nd" : (place == 3) ? "rd" : "th";
-                _leaderboardMessage = $"You placed {place}{suffix} on the leaderboard.";
-            }
-            else
-            {
-                _leaderboardMessage = "You didn't make the cut :(";
+                    if (score == _score)
+                    {
+                        place = i + 1;
+                        break;
+                    }
+                }
+
+                if (place > 0)
+                {
+                    string suffix = (place == 1) ? "st" : (place == 2) ? "nd" : (place == 3) ? "rd" : "th";
+                    _leaderboardMessage = $"You placed {place}{suffix} on the leaderboard.";
+                }
+                else
+                {
+                    _leaderboardMessage = "You didn't make the cut :(";
+                }
             }
 
             //game.CloseMiniGame(ShmackInc);

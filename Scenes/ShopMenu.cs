@@ -6,6 +6,7 @@ using System;
 using CompSci_NEA.Core;
 using CompSci_NEA.GUI;
 using CompSci_NEA.WorldGeneration.Structures;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace CompSci_NEA.Scenes
 {
@@ -50,14 +51,7 @@ namespace CompSci_NEA.Scenes
                 _items.Add(null);
             }
 
-            if (save.ShopInventory != null)
-            {
-                if (save.ShopInventory.PendingItems != null && save.ShopInventory.PendingItems.Count > 0)
-                {
-                    save.ShopInventory.AvailableItems.AddRange(save.ShopInventory.PendingItems);
-                    save.ShopInventory.PendingItems.Clear();
-                }
-            }
+            
 
             List<ShopItem> shopItems = new List<ShopItem>();
             if (save.ShopInventory != null && save.ShopInventory.AvailableItems != null)
@@ -100,6 +94,8 @@ namespace CompSci_NEA.Scenes
             {
                 case "Shmack":
                     return TextureManager.Shmacks;
+                case "Padlock":
+                    return TextureManager.Padlock;
                 default:
                     return TextureManager.Shmacks;
             }
@@ -204,17 +200,56 @@ namespace CompSci_NEA.Scenes
         {
             if (_selectedItem != null)
             {
+                MOVEDEBUGTEST scene = (MOVEDEBUGTEST)game.SceneStack.ParentScene;
+                if (scene.Shmacks < _selectedItem.Price)
+                {
+                    _isConfirming = false;
+                    _selectedItem = null;
+                    _selectedIndex = -1;
+                    return;
+                }
+                scene.UpdateShmacks(-_selectedItem.Price);
+                switch (_selectedItem.Name.ToLower())
+                {
+                    case "map":
+                        scene.UnlockMap = true;
+                        break;
+                    case "key 1":
+                        scene.UnlockBridge1 = true;
+                        scene.UnlockBridgeColliders(1);
+                        var key2 = save.ShopInventory.PendingItems.Find(i => i.Name == "Key 2");
+                        if (key2 != null)
+                        {
+                            save.ShopInventory.PendingItems.Remove(key2);
+                            save.ShopInventory.AvailableItems.Add(key2);
+                            ShopItem key2ShopItem = new ShopItem(key2.Name, key2.Price, GetIconFromName(key2.Icon), -1);
+                            AddShopItem(key2ShopItem);
+                        }
+                        break;
+                    case "key 2":
+                        scene.UnlockBridge2 = true;
+                        scene.UnlockBridgeColliders(2);
+                        break;
+                    default:
+                        break;
+                }
+
                 _items[_selectedIndex] = null;
-                var matchingItem = save.ShopInventory.AvailableItems.Find(i => i.Name == _selectedItem.Name && i.Price == _selectedItem.Price && i.Icon == "Shmack");
+                var matchingItem = save.ShopInventory.AvailableItems.Find(i => i.Name == _selectedItem.Name && i.Price == _selectedItem.Price);
                 if (matchingItem != null)
                 {
                     save.ShopInventory.AvailableItems.Remove(matchingItem);
+                    save.ShopInventory.BoughtItems.Add(matchingItem);
                 }
+                scene.SaveGame();
             }
             _isConfirming = false;
             _selectedItem = null;
             _selectedIndex = -1;
+
         }
+
+        
 
         private void CancelPurchase()
         {

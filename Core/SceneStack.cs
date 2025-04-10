@@ -63,6 +63,8 @@ namespace CompSci_NEA.Core
             _game.pauseCurrentSceneUpdating = _top?.Next != null; 
         }
 
+        public Scene ParentScene => _top?.Next?.Scene;
+
         public void Update(GameTime gameTime)
         {
             _top?.Scene.Update(gameTime);

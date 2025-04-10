@@ -28,6 +28,7 @@ namespace CompSci_NEA.Core
         public static Texture2D Disc {  get; private set; }
         public static Texture2D BMOAtlas { get; private set; }
         public static Texture2D PlayerMoveAtlas { get; private set; }
+        public static Texture2D Padlock {  get; private set; }
 
 
         public static void LoadContent(ContentManager content)
@@ -49,6 +50,7 @@ namespace CompSci_NEA.Core
             Disc = content.Load<Texture2D>("DiscTexture");
             BMOAtlas = content.Load<Texture2D>("MRROBOTsheet");
             PlayerMoveAtlas = content.Load<Texture2D>("PlayerMove");
+            Padlock = content.Load<Texture2D>("Padlock");
 
 
             if (TESTGRASS == null) throw new Exception("Failed to load TESTGRASS texture.");

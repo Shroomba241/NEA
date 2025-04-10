@@ -35,7 +35,6 @@ namespace CompSci_NEA.GUI
             _backgroundTexture = new Texture2D(graphicsDevice, 1, 1);
             _backgroundTexture.SetData(new[] { Color.DarkSlateGray });
 
-            // Create the Text object with the specified text scale.
             _buttonText = new Text(font, text, position + positionOffset, Color.White, textScale);
         }
 

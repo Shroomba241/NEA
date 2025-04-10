@@ -17,6 +17,10 @@ namespace CompSci_NEA.Scenes
             Play
         }
 
+        private string _userInfoText = "";
+        private GUI.Text _userInfoDisplay;
+        private DbFunctions _db;
+
         private bool _loaded = false;
         private UIState _currentState = UIState.Main;
         private Vector2 _offScreen = new Vector2(-500, -500);
@@ -103,6 +107,23 @@ namespace CompSci_NEA.Scenes
             _slot2DeleteButton = new GUI.Button(game.GraphicsDevice, _font, "Delete", _offScreen, 150, 80);
             _slot3DeleteButton = new GUI.Button(game.GraphicsDevice, _font, "Delete", _offScreen, 150, 80);
 
+            _db = new DbFunctions();
+            var allUserData = _db.GetAllUserData();
+            string totalCoins = "???";
+            foreach (var row in allUserData)
+            {
+                if (row[0] == Main.LoggedInUserID.ToString())
+                {
+                    totalCoins = row[3]; // users.coins
+                    break;
+                }
+            }
+            _userInfoText = $"{Main.LoggedInUsername} | Total Shmacks: {totalCoins}";
+
+            Vector2 textSize = _font.MeasureString(_userInfoText);
+            Vector2 position = new Vector2(1920 - textSize.X - 300, 1080 - textSize.Y - 30); // padding from bottom-right
+            _userInfoDisplay = new GUI.Text(_font, _userInfoText, position, Color.White, 1.5f);
+
             game.pauseCurrentSceneUpdating = false;
         }
 
@@ -184,6 +205,7 @@ namespace CompSci_NEA.Scenes
                 spriteBatch.Draw(_shorelineTitle, Vector2.Zero, null, Color.LightYellow, 0f, Vector2.Zero, 3.75f, SpriteEffects.None, 0f);
                 _logoutButton.Draw(spriteBatch);
                 _playButton.Draw(spriteBatch);
+                _userInfoDisplay.Draw(spriteBatch);
                 spriteBatch.End();
             }
         }

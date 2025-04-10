@@ -12,6 +12,7 @@ namespace CompSci_NEA.WorldGeneration.Structures
         private Vector2 _position;
         private Rectangle _textureRegion;
         private const float SCALE = 3.0f;
+        public bool DrawInForeground;
 
         public Shop(Texture2D tileAtlas, Vector2 position)
         {
@@ -20,9 +21,13 @@ namespace CompSci_NEA.WorldGeneration.Structures
             _textureRegion = new Rectangle(0, 272, 48, 32);
         }
 
-        public void Interact(Main game, GameSave save)
+        public void Interact(Main game, GameSave save, bool init)
         {
             game.StartMiniGame(Core.SubGameState.ShopMenu, save);
+            if (init)
+            {
+                game.SceneStack.PopScene();
+            }
         }
 
         public Vector2 GetInteractionPoint()
@@ -30,23 +35,30 @@ namespace CompSci_NEA.WorldGeneration.Structures
             return new Vector2(_position.X + (_textureRegion.Width * SCALE) / 2, _position.Y + (_textureRegion.Height * SCALE) / 2);
         }
 
-        public void DrawBackgroundInRect(SpriteBatch spriteBatch, Rectangle chunkRect)
+        public void DrawBackgroundInRect(SpriteBatch spriteBatch, Rectangle visibleRect)
         {
-            Rectangle shopRect = new Rectangle(
-                (int)_position.X,
-                (int)_position.Y,
-                (int)(_textureRegion.Width * SCALE),
-                (int)(_textureRegion.Height * SCALE));
-
-            if (shopRect.Intersects(chunkRect))
+            if (!DrawInForeground)
             {
-                spriteBatch.Draw(_tileAtlas, _position, _textureRegion, Color.White, 0f, Vector2.Zero, SCALE, SpriteEffects.None, 0f);
+                Rectangle shopRect = new Rectangle((int)_position.X, (int)_position.Y,
+                    (int)(_textureRegion.Width * SCALE), (int)(_textureRegion.Height * SCALE));
+                if (shopRect.Intersects(visibleRect))
+                {
+                    spriteBatch.Draw(_tileAtlas, _position, _textureRegion, Color.White, 0f, Vector2.Zero, SCALE, SpriteEffects.None, 0f);
+                }
             }
         }
 
-        public void DrawForegroundInRect(SpriteBatch spriteBatch, Rectangle rect)
+        public void DrawForegroundInRect(SpriteBatch spriteBatch, Rectangle visibleRect)
         {
-           
+            if (DrawInForeground)
+            {
+                Rectangle shopRect = new Rectangle((int)_position.X, (int)_position.Y,
+                    (int)(_textureRegion.Width * SCALE), (int)(_textureRegion.Height * SCALE));
+                if (shopRect.Intersects(visibleRect))
+                {
+                    spriteBatch.Draw(_tileAtlas, _position, _textureRegion, Color.White, 0f, Vector2.Zero, SCALE, SpriteEffects.None, 0f);
+                }
+            }
         }
 
         public IEnumerable<Rectangle> GetColliders()

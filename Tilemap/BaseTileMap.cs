@@ -171,6 +171,23 @@ namespace CompSci_NEA.Tilemap
             }
         }
 
+        public void SetTile(int worldX, int worldY, byte newTile)
+        {
+            if (worldX < 0 || worldY < 0)
+                return;
+
+            int chunkX = worldX / chunkSize;
+            int chunkY = worldY / chunkSize;
+            Point key = new Point(chunkX, chunkY);
+
+            if (!chunks.ContainsKey(key))
+                chunks[key] = CreateChunk(chunkX, chunkY);
+
+            int localX = worldX % chunkSize;
+            int localY = worldY % chunkSize;
+            chunks[key][localY, localX] = newTile;
+        }
+
         protected byte[,] CreateChunk(int chunkX, int chunkY)
         {
             byte[,] chunk = new byte[chunkSize, chunkSize];

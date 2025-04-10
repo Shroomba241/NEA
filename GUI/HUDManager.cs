@@ -30,7 +30,7 @@ namespace CompSci_NEA.GUI
 
         public void LoadContent()
         {
-            List<string[]> userData = _dbFunctions.GetAllUserData();
+            /*List<string[]> userData = _dbFunctions.GetAllUserData();
             string coins = "0";
             foreach (var row in userData)
             {
@@ -41,7 +41,7 @@ namespace CompSci_NEA.GUI
                 }
             }
             _shmackNumber = coins;
-            _shmacks = new Icon(TextureManager.Shmacks, new Vector2(1400, 50), Color.White, 3f, _shmackNumber, new Vector2(50, 15));
+            _shmacks = new Icon(TextureManager.Shmacks, new Vector2(1400, 50), Color.White, 3f, _shmackNumber, new Vector2(50, 15));*/
         }
 
         public void IncreaseShmackAmount(int increase)
@@ -54,6 +54,12 @@ namespace CompSci_NEA.GUI
             _shmacks.UpdateText(_shmackNumber);
             _dbFunctions.UpdateUserData(Main.LoggedInUserID, "coins", newCoins.ToString()); //commit shmack number to the db
             Console.WriteLine($"updated by - {increase}");
+        }
+
+        public void SetShmackAmount(int amount)
+        {
+            _shmackNumber = amount.ToString();
+            _shmacks = new Icon(TextureManager.Shmacks, new Vector2(1400, 50), Color.White, 3f, _shmackNumber, new Vector2(50, 15));
         }
 
         public void Draw(SpriteBatch spriteBatch)

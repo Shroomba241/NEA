@@ -56,15 +56,13 @@ namespace CompSci_NEA.WorldGeneration
 
             float leftRiverCenter = MathHelper.Lerp(_centerX - 110f * _scaleFactor, _centerX - 150f * _scaleFactor, t) +
                                     ((NoiseGenerator.Generate(1000, y * 0.01f) - 0.5f) * 2 * _totalWidth * 0.05f);
-
             float rightRiverCenter = MathHelper.Lerp(_centerX + 200f * _scaleFactor, _centerX + 400f * _scaleFactor, t) -
                                      (100f * _scaleFactor * 4 * t * (1 - t)) -
                                      ((NoiseGenerator.Generate(1000, y * 0.01f) - 0.5f) * 2 * _totalWidth * 0.05f);
 
             if (MathF.Abs(x - leftRiverCenter) < 5f || MathF.Abs(x - rightRiverCenter) < 5f)
-                return 2; // River or sea tile
+                return 2;
 
-            // Zone assignment: Left zone is tile 3, middle zone is tile 5, right zone is tile 4.
             return finalShape < landThreshold
                 ? (x < leftRiverCenter ? (byte)3 : x > rightRiverCenter ? (byte)4 : (byte)5)
                 : (byte)2;
@@ -83,13 +81,10 @@ namespace CompSci_NEA.WorldGeneration
                         for (int j = 0; j < world.GetLength(1); j++)
                             world[i, j] = GenerateTile(i, j);
 
-                    // Define rectangles for each zone.
-                    // (For demonstration, these are fixed. In a real system, compute them based on tile type.)
                     Rectangle leftZoneRect = new Rectangle(0, 0, 800, world.GetLength(1));
                     Rectangle middleZoneRect = new Rectangle(200, 0, 1000, world.GetLength(1));
                     Rectangle rightZoneRect = new Rectangle(800, 0, world.GetLength(0) -800, world.GetLength(1));
 
-                    // Left zone (tile 3): use Normal functions with custom percentages.
                     leftBiomeGen = new BiomeGenerator(
                         world,
                         leftZoneRect,
@@ -120,7 +115,6 @@ namespace CompSci_NEA.WorldGeneration
                         coldPercentage: 0.2f,
                         mediumPercentage: 0.6f);
 
-                    // Merge the biome maps based on the original zone assignment.
                     _biomeMap = new byte[world.GetLength(0), world.GetLength(1)];
                     byte[,] mapLeft = leftBiomeGen.GetBiomeMap();
                     byte[,] mapMiddle = middleBiomeGen.GetBiomeMap();
@@ -146,7 +140,5 @@ namespace CompSci_NEA.WorldGeneration
 
             return baseTile;
         }
-
-        // Texture generation methods can remain unchanged.
     }
 }

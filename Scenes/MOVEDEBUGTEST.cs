@@ -9,7 +9,8 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using CompSci_NEA.Database; 
+using CompSci_NEA.Database;
+using CompSci_NEA.WorldGeneration.Structures;
 
 namespace CompSci_NEA.Scenes
 {
@@ -39,10 +40,11 @@ namespace CompSci_NEA.Scenes
         private const float REGEN_INTERVAL = 1.5f;
 
         private HUDManager _hudManager;
-
         public int Shmacks;
         private float _escapeCooldown = 0f;
         private bool _escapePressed = false;
+
+        public bool UnlockMap,UnlockBridge1,UnlockBridge2 = false;
 
         public MOVEDEBUGTEST(Main game, GameSave save)
         {
@@ -84,10 +86,16 @@ namespace CompSci_NEA.Scenes
 
             DbFunctions db = new DbFunctions();
             int userId = Main.LoggedInUserID;
-            int worldId = 1; //assumes world_id is 1.
+            int worldId = 1; //assumes worldid is 1.
             var (locationX, locationY, coins, savePath) = db.GetUserWorldSave(userId, worldId);
+            var (seed, creation_date, difficulty) = db.GetWorldData(worldId);
+            Console.WriteLine($"9876 {save.PodiumGoalRemaining}, {difficulty}");
+            if (save.PodiumGoalRemaining <= 0 || save.PodiumGoalRemaining > difficulty)
+                save.PodiumGoalRemaining = difficulty;
+            Console.WriteLine($"9876 {save.PodiumGoalRemaining}, {difficulty}");
+            _structureTileMap.Podium.GoalAmount = save.PodiumGoalRemaining;
             Console.WriteLine($"DB State: location=({locationX},{locationY}), coins={coins}, savePath={savePath}");
-
+            Shmacks = coins;
             if (locationX != 0 || locationY != 0)
                 _player = new Player(game.GraphicsDevice, new Vector2(locationX, locationY), TextureManager.PlayerMoveAtlas);
             else
@@ -104,11 +112,59 @@ namespace CompSci_NEA.Scenes
             _hudManager = new HUDManager();
             _hudManager.LoadContent();
 
+            _structureTileMap.Shop.Interact(game, save, true);
+
+            if (save.ShopInventory != null && save.ShopInventory.BoughtItems != null)
+            {
+                foreach (var item in save.ShopInventory.BoughtItems)
+                {
+                    switch (item.Name.ToLower())
+                    {
+                        case "map":
+                            UnlockMap = true;
+                            break;
+                        case "key 1":
+                            UnlockBridge1 = true;
+                            UnlockBridgeColliders(1);
+                            break;
+                        case "key 2":
+                            UnlockBridge2 = true;
+                            UnlockBridgeColliders(2);
+                            break;
+                    }
+                }
+            }
+
+            _hudManager.SetShmackAmount(Shmacks);
+
             //game.StartMiniGame(SubGameState.Connect4);
         }
 
         public override void Update(GameTime gameTime)
         {
+            _structureTileMap.Shop.DrawInForeground = (_player.Position.Y + 100 < _structureTileMap.Shop.GetInteractionPoint().Y);
+            _structureTileMap.Podium.PlayerFeet = _player.Position.Y + 100;
+
+            Rectangle podiumArea = new Rectangle((int)_structureTileMap.Podium.Position.X, (int)_structureTileMap.Podium.Position.Y, 48 * 3, 48 * 3);
+            Rectangle playerFeetRect = new Rectangle((int)_player.Position.X, (int)(_player.Position.Y + 96), 10, 10);
+
+            bool isOnPodium = podiumArea.Intersects(playerFeetRect);
+            if (isOnPodium && !_structureTileMap.Podium.PlayerWasOnPodium && Shmacks > 0)
+            {
+                _structureTileMap.Podium.Donate(Shmacks);
+                UpdateShmacks(-Shmacks);
+                _structureTileMap.Podium.PlayerWasOnPodium = true;
+            }
+            else if (!isOnPodium)
+            {
+                _structureTileMap.Podium.PlayerWasOnPodium = false;
+            }
+            /*foreach (var s in _structureTileMap.Bridges)
+            {
+                if (s is WoodBridge wb)
+                    _tileMapCollisions.ClearCollisionUnderBridge(wb);
+            }*/
+
             KeyboardState ks = Keyboard.GetState();
 
             if (ks.IsKeyDown(Keys.Escape))
@@ -145,7 +201,7 @@ namespace CompSci_NEA.Scenes
                 float distance = Vector2.Distance(_player.Position, _structureTileMap.Shop.GetInteractionPoint());
                 if (distance < 100f)
                 {
-                    _structureTileMap.Shop.Interact(game, save);
+                    _structureTileMap.Shop.Interact(game, save, false);
                 }
             }
         }
@@ -164,12 +220,22 @@ namespace CompSci_NEA.Scenes
             {
                 _tileMapCollisions.DrawDebug(spriteBatch, TextureManager.DEBUG_Collider, _player.Position);
             }
+            if (!UnlockBridge1)
+            {
+                var pos = ((WoodBridge)_structureTileMap.Bridges[0]).Position;
+                spriteBatch.Draw(TextureManager.Padlock, new Rectangle((int)pos.X + 144, (int)pos.Y + 24, 64, 64), Color.White);
+            }
+            if (!UnlockBridge2)
+            {
+                var pos = ((WoodBridge)_structureTileMap.Bridges[1]).Position;
+                spriteBatch.Draw(TextureManager.Padlock, new Rectangle((int)pos.X + 144, (int)pos.Y + 24, 64, 64), Color.White);
+            }
             spriteBatch.End();
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _hudManager.Draw(spriteBatch);
 
-            if (_showMap && _mapTexture != null)
+            if (_showMap && _mapTexture != null && UnlockMap)
             {
                 spriteBatch.Draw(_mapTexture, new Vector2(448, 24), Color.White);
                 Point playerChunk = _tileMapVisual.GetChunkCoordinates((int)_player.Position.X, (int)_player.Position.Y);
@@ -178,6 +244,7 @@ namespace CompSci_NEA.Scenes
                 spriteBatch.Draw(_highlightTexture, highlightPosition, null, Color.White * 0.5f,
                                  0f, Vector2.Zero, new Vector2(_chunkWidth, _chunkHeight), SpriteEffects.None, 0f);
             }
+            
 
             _simplePerformance.Draw(spriteBatch);
             spriteBatch.End();
@@ -185,12 +252,28 @@ namespace CompSci_NEA.Scenes
 
         public void UpdateShmacks(int reward)
         {
-            _hudManager.IncreaseShmackAmount(reward);
-            Console.WriteLine($"updated by {reward}");
+            Shmacks += reward;
+            _hudManager.SetShmackAmount(Shmacks);
+            if (reward > 0)
+            {
+                DbFunctions db = new DbFunctions();
+                List<string[]> data = db.GetAllUserData();
+                foreach (var row in data)
+                {
+                    if (row[0] == Main.LoggedInUserID.ToString())
+                    {
+                        int current = int.Parse(row[3]);
+                        db.UpdateUserData(Main.LoggedInUserID, "coins", (current + reward).ToString());
+                        break;
+                    }
+                }
+            }
+            SaveGame();
         }
 
         public void SaveGame()
         {
+            save.PodiumGoalRemaining = _structureTileMap.Podium.GoalAmount;
             string filePath = Path.Combine("Saves", Main.LoggedInUserID.ToString(), save.Slot);
             SaveManager.SaveGame(save, filePath);
             DbFunctions db = new DbFunctions();
@@ -202,6 +285,11 @@ namespace CompSci_NEA.Scenes
         {
             save.Minigames.Minigames = newMinigames;
         }*/
+
+        public void UnlockBridgeColliders(int n)
+        {
+            _tileMapCollisions.ClearCollisionUnderBridge((WoodBridge)_structureTileMap.Bridges[n-1]);
+        }
 
         public override void Shutdown()
         {
